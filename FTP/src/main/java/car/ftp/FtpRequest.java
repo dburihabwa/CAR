@@ -1,8 +1,11 @@
 package main.java.car.ftp;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -17,6 +20,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import main.java.car.ftp.exceptions.UnsupportedCommandException;
 import main.java.car.ftp.utils.CommandParser;
 
 public class FtpRequest {
@@ -27,6 +31,12 @@ public class FtpRequest {
 	private int port = 0;
 	private DataOutputStream dos;
 
+	private enum TYPE {
+		A, A_N, I, L_8
+	};
+
+	private TYPE flag;
+
 	@SuppressWarnings("unused")
 	private FtpRequest() {
 	}
@@ -35,6 +45,7 @@ public class FtpRequest {
 		if (socket == null)
 			throw new NullPointerException("socket is null");
 		this.socket = socket;
+		this.flag = TYPE.A;
 	}
 
 	public Socket getSocket() {
@@ -47,7 +58,12 @@ public class FtpRequest {
 		return this.dos;
 	}
 
-	public void processRequest(final String commandString) {
+	public TYPE getFlag() {
+		return this.flag;
+	}
+
+	public void processRequest(final String commandString)
+			throws UnsupportedCommandException {
 		Command command = CommandParser.parse(commandString);
 		Method handler = null;
 
@@ -119,15 +135,38 @@ public class FtpRequest {
 	/**
 	 * Returns a file from the FTP server.
 	 * 
-	 * @param file Name of the file to retrieve
-	 * @throws IOException 
+	 * @param file
+	 *            Name of the file to retrieve
+	 * @throws IOException
 	 */
 	protected void processRETR(final String file) throws IOException {
-		File fileToRetrieve = new File("/home/dorian/ftp/index.html");
+		File fileToRetrieve = new File(Main.directory + File.separator
+				+ file.trim());
 		if (!fileToRetrieve.exists())
 			dos.writeBytes("400 The file cannot be found on the server!\n");
-		writeOnDataSocket(new String(file.getBytes()));
-		dos.writeBytes("200 The file was correctly sent!\n");
+
+		dos.writeBytes("150 Going to send " + file + "\n");
+		clientSocket = new Socket();
+		SocketAddress socketAddress = new InetSocketAddress(address, port);
+		clientSocket.connect(socketAddress);
+		DataInputStream dis = new DataInputStream(new FileInputStream(
+				fileToRetrieve));
+		DataOutputStream cos = new DataOutputStream(
+				clientSocket.getOutputStream());
+		byte[] buffer = new byte[1024];
+		while (dis.available() > 0) {
+			int leftToSend = dis.available();
+			if (leftToSend < buffer.length) {
+				buffer = new byte[leftToSend];
+			}
+			dis.read(buffer);
+			cos.write(buffer);
+		}
+		cos.close();
+		dis.close();
+		clientSocket.close();
+
+		dos.writeBytes("226 The file was succesfully sent!\n");
 	}
 
 	protected void processLIST(final String argument) throws IOException {
@@ -229,6 +268,22 @@ public class FtpRequest {
 		dos.writeBytes("215 UNIX Type: L8\n");
 	}
 
+	protected void processTYPE(String typeString) throws IOException {
+		typeString = typeString.trim();
+		if (typeString.equalsIgnoreCase("A")) {
+			flag = TYPE.A;
+		} else if (typeString.equalsIgnoreCase("A N")) {
+			flag = TYPE.A_N;
+		} else if (typeString.equalsIgnoreCase("I")) {
+			flag = TYPE.I;
+		} else if (typeString.equalsIgnoreCase("L 8")) {
+			flag = TYPE.L_8;
+		} else {
+			logger.log(Level.WARNING, "could not parse type : " + typeString);
+		}
+		dos.writeBytes("200\n");
+	}
+
 	protected void processQUIT(final String argument) throws IOException {
 		if (dos != null)
 			dos.close();
@@ -247,5 +302,4 @@ public class FtpRequest {
 		clientSocket.close();
 		return data;
 	}
-
 }

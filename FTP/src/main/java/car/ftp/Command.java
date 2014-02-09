@@ -2,7 +2,7 @@ package main.java.car.ftp;
 
 public class Command {
 	public static enum AuhtorizedCommand {
-		LIST, PASS, RETR, STOR, SYST, USER, QUIT, PORT, FEAT, PWD
+		LIST, PASS, RETR, STOR, SYST, USER, QUIT, PORT, FEAT, PWD, TYPE
 	};
 
 	private AuhtorizedCommand command;
