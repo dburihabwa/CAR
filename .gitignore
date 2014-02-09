@@ -1,0 +1,6 @@
+bin/*
+*.class
+*.bak
+*.tmp
+*.~
+*.swp
