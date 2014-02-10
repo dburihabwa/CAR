@@ -13,7 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
@@ -136,8 +138,10 @@ public class FtpRequest {
 	protected void processRETR(final String file) throws IOException {
 		File fileToRetrieve = new File(server.getRootDirectory()
 				+ File.separator + file.trim());
-		if (!fileToRetrieve.exists())
-			dos.writeBytes("400 The file cannot be found on the server!\n");
+		if (!fileToRetrieve.exists()) {
+			dos.writeBytes("451 The file cannot be found on the server!\n");
+			return;
+		}
 
 		dos.writeBytes("150 Going to send " + file + "\n");
 		Socket dataSocket = new Socket();
@@ -149,6 +153,7 @@ public class FtpRequest {
 		DataOutputStream cos = new DataOutputStream(
 				dataSocket.getOutputStream());
 		byte[] buffer = new byte[1024];
+		Calendar start = new GregorianCalendar();
 		while (dis.available() > 0) {
 			int leftToSend = dis.available();
 			if (leftToSend < buffer.length) {
@@ -157,9 +162,13 @@ public class FtpRequest {
 			dis.read(buffer);
 			cos.write(buffer);
 		}
+		Calendar end = new GregorianCalendar();
 		cos.close();
 		dis.close();
 		dataSocket.close();
+
+		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
+		logger.log(Level.INFO, "Transfered " + file + " in " + time + "s");
 
 		dos.writeBytes("226 The file was succesfully sent!\n");
 	}
