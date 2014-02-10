@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -25,10 +24,8 @@ import main.java.car.ftp.utils.CommandParser;
 
 public class FtpRequest {
 	private Logger logger = Logger.getAnonymousLogger();
-	private Socket socket;
-	private Socket clientSocket;
-	private String address;
-	private int port = 0;
+	private ClientSession clientSession;
+	private Server server;
 	private DataOutputStream dos;
 
 	private enum TYPE {
@@ -41,20 +38,16 @@ public class FtpRequest {
 	private FtpRequest() {
 	}
 
-	public FtpRequest(final Socket socket) {
-		if (socket == null)
-			throw new NullPointerException("socket is null");
-		this.socket = socket;
+	public FtpRequest(final ClientSession clientSession) {
+		this.clientSession = clientSession;
+		this.server = Server.SERVER;
 		this.flag = TYPE.A;
-	}
-
-	public Socket getSocket() {
-		return this.socket;
 	}
 
 	public DataOutputStream getOutputStream() throws IOException {
 		if (dos == null)
-			this.dos = new DataOutputStream(this.socket.getOutputStream());
+			this.dos = new DataOutputStream(this.clientSession
+					.getCommandSocket().getOutputStream());
 		return this.dos;
 	}
 
@@ -110,11 +103,12 @@ public class FtpRequest {
 	protected void processPORT(final String argument) throws IOException {
 		dos = getOutputStream();
 		String[] tokens = argument.split(",");
-		address = tokens[0] + "." + tokens[1] + "." + tokens[2] + "."
+		String address = tokens[0] + "." + tokens[1] + "." + tokens[2] + "."
 				+ tokens[3];
-		port = (Integer.parseInt(tokens[4]) * 256)
+		clientSession.setDataAddress(address);
+		int port = (Integer.parseInt(tokens[4]) * 256)
 				+ Integer.parseInt(tokens[5]);
-		System.out.println("Tried to open " + address + ":" + port);
+		clientSession.setDataPort(port);
 		dos.writeBytes("200 Address and port number has been saved! \n");
 	}
 
@@ -127,7 +121,7 @@ public class FtpRequest {
 	 *             If an error occurs while trying to write on the socket.
 	 */
 	protected void processPWD(final String argument) throws IOException {
-		File directory = Main.directory;
+		File directory = server.getRootDirectory();
 		String path = directory.getPath();
 		dos.writeBytes("257 " + path + "\n");
 	}
@@ -140,19 +134,20 @@ public class FtpRequest {
 	 * @throws IOException
 	 */
 	protected void processRETR(final String file) throws IOException {
-		File fileToRetrieve = new File(Main.directory + File.separator
-				+ file.trim());
+		File fileToRetrieve = new File(server.getRootDirectory()
+				+ File.separator + file.trim());
 		if (!fileToRetrieve.exists())
 			dos.writeBytes("400 The file cannot be found on the server!\n");
 
 		dos.writeBytes("150 Going to send " + file + "\n");
-		clientSocket = new Socket();
-		SocketAddress socketAddress = new InetSocketAddress(address, port);
-		clientSocket.connect(socketAddress);
+		Socket dataSocket = new Socket();
+		SocketAddress socketAddress = new InetSocketAddress(
+				clientSession.getDataAddress(), clientSession.getDataPort());
+		dataSocket.connect(socketAddress);
 		DataInputStream dis = new DataInputStream(new FileInputStream(
 				fileToRetrieve));
 		DataOutputStream cos = new DataOutputStream(
-				clientSocket.getOutputStream());
+				dataSocket.getOutputStream());
 		byte[] buffer = new byte[1024];
 		while (dis.available() > 0) {
 			int leftToSend = dis.available();
@@ -164,14 +159,14 @@ public class FtpRequest {
 		}
 		cos.close();
 		dis.close();
-		clientSocket.close();
+		dataSocket.close();
 
 		dos.writeBytes("226 The file was succesfully sent!\n");
 	}
 
 	protected void processLIST(final String argument) throws IOException {
 		dos = getOutputStream();
-		File directory = Main.directory;
+		File directory = server.getRootDirectory();
 		String response = "";
 		for (File file : directory.listFiles()) {
 			String line = getListLine(file);
@@ -287,19 +282,21 @@ public class FtpRequest {
 	protected void processQUIT(final String argument) throws IOException {
 		if (dos != null)
 			dos.close();
-		if (socket != null && !socket.isClosed())
-			socket.close();
+		Socket commandSocket = clientSession.getCommandSocket();
+		if (commandSocket != null && !commandSocket.isClosed())
+			commandSocket.close();
 	}
 
 	private String writeOnDataSocket(final String data) throws IOException {
-		clientSocket = new Socket();
-		SocketAddress socketAddress = new InetSocketAddress(address, port);
-		clientSocket.connect(socketAddress);
+		Socket dataSocket = new Socket();
+		SocketAddress socketAddress = new InetSocketAddress(
+				clientSession.getDataAddress(), clientSession.getDataPort());
+		dataSocket.connect(socketAddress);
 		DataOutputStream cos = new DataOutputStream(
-				clientSocket.getOutputStream());
+				dataSocket.getOutputStream());
 		cos.writeBytes(data);
 		cos.close();
-		clientSocket.close();
+		dataSocket.close();
 		return data;
 	}
 }

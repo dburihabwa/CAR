@@ -17,9 +17,10 @@ import java.net.Socket;
  */
 public class ClientSession {
 	private Socket commandSocket;
-	private Socket dataSocket;
 	private boolean connected;
 	private File currentDirectory;
+	private int dataPort = 0;
+	private String dataAddress;
 
 	@SuppressWarnings("unused")
 	private ClientSession() {
@@ -30,11 +31,7 @@ public class ClientSession {
 		super();
 		this.commandSocket = commandSocket;
 		this.connected = connected;
-		this.currentDirectory = Main.directory;
-	}
-
-	public Socket getDataSocket() {
-		return dataSocket;
+		this.currentDirectory = Server.SERVER.getRootDirectory();
 	}
 
 	public Socket getCommandSocket() {
@@ -49,4 +46,25 @@ public class ClientSession {
 		return connected;
 	}
 
+	public int getDataPort() {
+		return dataPort;
+	}
+	public void setPort(final int port) {
+		if (port < 0 || port > 65536) {
+			throw new IllegalArgumentException("Illegal port number:" + port);
+		}
+		this.dataPort = port;
+	}
+
+	public String getDataAddress() {
+		return dataAddress;
+	}
+
+	public void setDataAddress(String dataAddress) {
+		this.dataAddress = dataAddress;
+	}
+
+	public void setDataPort(int dataPort) {
+		this.dataPort = dataPort;
+	}
 }
