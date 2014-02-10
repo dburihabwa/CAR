@@ -7,7 +7,9 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import main.java.car.ftp.ClientSession;
 import main.java.car.ftp.FtpRequest;
+import main.java.car.ftp.exceptions.UnsupportedCommandException;
 
 public class FtpWorker implements Runnable {
 	private Socket socket;
@@ -28,8 +30,9 @@ public class FtpWorker implements Runnable {
 		try {
 			bis = new BufferedInputStream(socket.getInputStream());
 			dos = new DataOutputStream(socket.getOutputStream());
-			dos.writeBytes("200 Connexion accéptée!\n");
-			FtpRequest ftpRequest = new FtpRequest(socket);
+			dos.writeBytes("200 Connexion accepted!\n");
+			ClientSession clientSession = new ClientSession(socket, true);
+			FtpRequest ftpRequest = new FtpRequest(clientSession);
 			byte[] buffer = new byte[1024];
 			String command;
 			while (connected && !socket.isClosed()) {
@@ -40,9 +43,10 @@ public class FtpWorker implements Runnable {
 				bis.read(buffer);
 				command = new String(buffer);
 				ftpRequest.processRequest(command);
-				System.out.println("LOOPING");
+				System.out.println("Waiting for new command");
 			}
-		} catch (IOException e) {
+			logger.log(Level.INFO, "The client closed the connection!");
+		} catch (IOException | UnsupportedCommandException e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			System.exit(1);
 		} finally {
