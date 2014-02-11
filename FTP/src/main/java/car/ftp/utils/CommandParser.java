@@ -18,18 +18,27 @@ public class CommandParser {
 
 	/**
 	 * Parses a string and returns the associated command.
-	 * @param message	String to parse
-	 * @return	A command object with the AuthorizedCommand and its arguments
-	 * @throws UnsupportedCommandException 
+	 * 
+	 * @param message
+	 *            String to parse
+	 * @return A command object with the AuthorizedCommand and its arguments
+	 * @throws UnsupportedCommandException
 	 */
-	public static Command parse(String message) throws UnsupportedCommandException {
+	public static Command parse(String message)
+			throws UnsupportedCommandException {
+		if (message == null)
+			throw new IllegalArgumentException(
+					"argument message cannot be null!");
 		String[] tokens = message.split("\\s+");
 		AuhtorizedCommand command = null;
 		String argument = null;
 		for (AuhtorizedCommand c : AuhtorizedCommand.values()) {
 			if (tokens[0].equalsIgnoreCase(c.name())) {
 				command = c;
-				argument = tokens[1];
+				argument = "";
+				if (tokens.length >= 2) {
+					argument = tokens[1];
+				}
 				break;
 			}
 		}
