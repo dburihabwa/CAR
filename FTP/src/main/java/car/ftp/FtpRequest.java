@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -65,7 +66,6 @@ public class FtpRequest {
 		for (Method m : this.getClass().getDeclaredMethods()) {
 			String method = m.getName();
 			if (method.equalsIgnoreCase("process" + command.getCommand())) {
-				System.out.println("Matching command found!");
 				handler = m;
 				break;
 			}
@@ -92,6 +92,10 @@ public class FtpRequest {
 
 	}
 
+	protected void processCWD(final String username) throws IOException {
+		dos.writeBytes("202 Not implmented yet!\n");
+	}
+
 	protected void processUSER(final String username) throws IOException {
 		dos = getOutputStream();
 		dos.writeBytes("331 Username accepted, now expecting password!\n");
@@ -102,9 +106,13 @@ public class FtpRequest {
 		dos.writeBytes("230 Password accepted, please proceed!\n");
 	}
 
+	protected void processPASV(final String argument) throws IOException {
+		dos.writeBytes("202 Not implmented yet!\n");
+	}
+
 	protected void processPORT(final String argument) throws IOException {
 		dos = getOutputStream();
-		String[] tokens = argument.split(",");
+		String[] tokens = argument.split(",+");
 		String address = tokens[0] + "." + tokens[1] + "." + tokens[2] + "."
 				+ tokens[3];
 		clientSession.setDataAddress(address);
@@ -154,13 +162,9 @@ public class FtpRequest {
 				dataSocket.getOutputStream());
 		byte[] buffer = new byte[1024];
 		Calendar start = new GregorianCalendar();
-		while (dis.available() > 0) {
-			int leftToSend = dis.available();
-			if (leftToSend < buffer.length) {
-				buffer = new byte[leftToSend];
-			}
-			dis.read(buffer);
-			cos.write(buffer);
+		int read = 0;
+		while ((read = dis.read(buffer)) > 0) {
+			cos.write(buffer, 0, read);
 		}
 		Calendar end = new GregorianCalendar();
 		cos.close();
@@ -168,7 +172,7 @@ public class FtpRequest {
 		dataSocket.close();
 
 		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
-		logger.log(Level.INFO, "Transfered " + file + " in " + time + "s");
+		logger.log(Level.INFO, "Sent " + file + " in " + time + "s");
 
 		dos.writeBytes("226 The file was succesfully sent!\n");
 	}
@@ -184,7 +188,6 @@ public class FtpRequest {
 		dos.writeBytes("150 About to read directory content!\n");
 		writeOnDataSocket(response);
 		dos.writeBytes("200 \n");
-		System.out.println("End of processPORT\n");
 	}
 
 	private String getListLine(File file) throws IOException {
@@ -259,12 +262,39 @@ public class FtpRequest {
 		String numberOfLinks = "1";
 
 		line += permission + " " + numberOfLinks + " " + owner + " " + group
-				+ " " + size + " " + modifiedTime + " " + file.getName() + "\n";
+				+ " " + size + " " + modifiedTime + " " + file.getName()
+				+ "\r\n";
 		return line;
 	}
 
-	protected void processSTOR(final String file) {
-		throw new UnsupportedOperationException("Not implemented yet!");
+	protected void processSTOR(final String file) throws IOException {
+		File newFile = new File(Server.SERVER.getRootDirectory()
+				+ File.separator + file);
+		if (!newFile.createNewFile()) {
+			String message = "File " + file + " could not be created!";
+			logger.log(Level.WARNING, message);
+			dos.writeBytes("451 " + message + "\n");
+			return;
+		}
+		dos.writeBytes("150 Ready to receive file " + file + " \n");
+		
+		Socket dataSocket = new Socket(clientSession.getDataAddress(), clientSession.getDataPort());
+		byte[] buffer = new byte[1024];
+		Calendar start = new GregorianCalendar();
+		DataInputStream cis = new DataInputStream(dataSocket.getInputStream());
+		DataOutputStream cos = new DataOutputStream(new FileOutputStream(
+				newFile));
+		int read = 0;
+		while ((read = cis.read(buffer)) > 0) {
+			cos.write(buffer, 0, read);
+		}
+		Calendar end = new GregorianCalendar();
+		cos.close();
+		cis.close();
+		dataSocket.close();
+		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
+		logger.log(Level.INFO, "Transfered " + file + " in " + time + "s");
+		dos.writeBytes("226 Received and executed STOR " + file + " \n");
 	}
 
 	protected void processSYST(final String argument) throws IOException {
@@ -285,7 +315,7 @@ public class FtpRequest {
 		} else {
 			logger.log(Level.WARNING, "could not parse type : " + typeString);
 		}
-		dos.writeBytes("200\n");
+		dos.writeBytes("200 \n");
 	}
 
 	protected void processQUIT(final String argument) throws IOException {
