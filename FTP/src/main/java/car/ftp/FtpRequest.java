@@ -144,12 +144,15 @@ public class FtpRequest {
 	}
 
 	protected void processPASV(final String argument) throws IOException {
+		// TODO: truly implement
 		dos.writeBytes("202 Not implmented yet!\n");
 	}
 
 	protected void processPORT(final String argument) throws IOException {
 		dos = getOutputStream();
-		String[] tokens = argument.split(",+");
+		System.out.println("processPORT: " + argument);
+		String arg = argument;
+		String[] tokens = arg.split(",");
 		String address = tokens[0] + "." + tokens[1] + "." + tokens[2] + "."
 				+ tokens[3];
 		clientSession.setDataAddress(address);
@@ -189,23 +192,20 @@ public class FtpRequest {
 		}
 
 		dos.writeBytes("150 Going to send " + file + "\n");
-		Socket dataSocket = new Socket();
-		SocketAddress socketAddress = new InetSocketAddress(
-				clientSession.getDataAddress(), clientSession.getDataPort());
-		dataSocket.connect(socketAddress);
-		DataInputStream dis = new DataInputStream(new FileInputStream(
-				fileToRetrieve));
+		Socket dataSocket = new Socket(clientSession.getDataAddress(),
+				clientSession.getDataPort());
+		FileInputStream fis = new FileInputStream(fileToRetrieve);
 		DataOutputStream cos = new DataOutputStream(
 				dataSocket.getOutputStream());
 		byte[] buffer = new byte[1024];
 		Calendar start = new GregorianCalendar();
 		int read = 0;
-		while ((read = dis.read(buffer)) > 0) {
+		while ((read = fis.read(buffer)) > 0) {
 			cos.write(buffer, 0, read);
 		}
 		Calendar end = new GregorianCalendar();
 		cos.close();
-		dis.close();
+		fis.close();
 		dataSocket.close();
 
 		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
@@ -305,28 +305,22 @@ public class FtpRequest {
 	}
 
 	protected void processSTOR(final String file) throws IOException {
-		File newFile = new File(Server.SERVER.getRootDirectory()
+		File newFile = new File(clientSession.getCurrentDirectory()
 				+ File.separator + file);
-		if (!newFile.createNewFile()) {
-			String message = "File " + file + " could not be created!";
-			logger.log(Level.WARNING, message);
-			dos.writeBytes("451 " + message + "\n");
-			return;
-		}
 		dos.writeBytes("150 Ready to receive file " + file + " \n");
-		
-		Socket dataSocket = new Socket(clientSession.getDataAddress(), clientSession.getDataPort());
+
+		Socket dataSocket = new Socket(clientSession.getDataAddress(),
+				clientSession.getDataPort());
 		byte[] buffer = new byte[1024];
 		Calendar start = new GregorianCalendar();
 		DataInputStream cis = new DataInputStream(dataSocket.getInputStream());
-		DataOutputStream cos = new DataOutputStream(new FileOutputStream(
-				newFile));
+		FileOutputStream fos = new FileOutputStream(newFile);
 		int read = 0;
 		while ((read = cis.read(buffer)) > 0) {
-			cos.write(buffer, 0, read);
+			fos.write(buffer, 0, read);
 		}
 		Calendar end = new GregorianCalendar();
-		cos.close();
+		fos.close();
 		cis.close();
 		dataSocket.close();
 		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;

@@ -1,8 +1,10 @@
 package main.java.car.ftp.utils;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,11 +39,9 @@ public class FtpWorker implements Runnable {
 			String command;
 			while (connected && !socket.isClosed()) {
 				System.out.println("Entering LOOP");
-				bis = new BufferedInputStream(socket.getInputStream());
-				while (bis.available() == 0)
-					;
-				bis.read(buffer);
-				command = new String(buffer);
+				InputStreamReader isr = new InputStreamReader(socket.getInputStream());
+				BufferedReader br = new BufferedReader(isr);
+				command = br.readLine();
 				ftpRequest.processRequest(command);
 				System.out.println("Waiting for new command");
 			}
