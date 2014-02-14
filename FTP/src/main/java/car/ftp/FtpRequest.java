@@ -93,6 +93,19 @@ public class FtpRequest {
 	}
 
 	/**
+	 * Changes the client's current directory to the parent directory.
+	 *
+	 * @param argument
+	 *            Useless argument to match process methods prototype
+	 * @throws IOException
+	 *             If an error occurs while trying to test the directory,
+	 *             switching directory or sending a message to the client.
+	 */
+	protected void processCDUP(final String argument) throws IOException {
+		processCWD("..");
+	}
+
+	/**
 	 * Changes the current directory of the client.
 	 *
 	 * @param directoryString
