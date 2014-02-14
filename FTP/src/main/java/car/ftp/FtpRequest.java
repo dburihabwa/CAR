@@ -11,6 +11,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.text.SimpleDateFormat;
@@ -28,7 +30,6 @@ import main.java.car.ftp.utils.CommandParser;
 public class FtpRequest {
 	private Logger logger = Logger.getAnonymousLogger();
 	private ClientSession clientSession;
-	private Server server;
 	private DataOutputStream dos;
 
 	private enum TYPE {
@@ -43,7 +44,6 @@ public class FtpRequest {
 
 	public FtpRequest(final ClientSession clientSession) {
 		this.clientSession = clientSession;
-		this.server = Server.SERVER;
 		this.flag = TYPE.A;
 	}
 
@@ -92,8 +92,45 @@ public class FtpRequest {
 
 	}
 
-	protected void processCWD(final String username) throws IOException {
-		dos.writeBytes("202 Not implmented yet!\n");
+	/**
+	 * Changes the current directory of the client.
+	 *
+	 * @param directoryString
+	 *            Relative or absolute path to the directory
+	 * @throws IOException
+	 *             If an error occurs while trying to test the directory,
+	 *             switching directory or sending a message to the client.
+	 */
+	protected void processCWD(final String directoryString) throws IOException {
+		if (directoryString == null) {
+			throw new IllegalArgumentException(
+					"argument directorySTring cannot be null!");
+		}
+		Path path = Paths.get(directoryString);
+		if (!path.isAbsolute()) {
+			path = Paths.get(clientSession.getCurrentDirectory().toString(),
+					directoryString);
+		}
+		path = path.normalize();
+		File directory = new File(path.toString());
+		System.out.println("newDirectory :" + path.toString());
+		if (!directory.exists()) {
+			dos.writeBytes("550 No such file or directory: "
+					+ directory.getAbsolutePath() + "\n");
+			return;
+		}
+		if (!directory.isDirectory()) {
+			dos.writeBytes("550 " + directoryString + " is not a directory\n");
+			return;
+		}
+		Path rootPath = Server.SERVER.getRootDirectory().toPath();
+		if (!path.startsWith(rootPath)) {
+			dos.writeBytes("550 " + path
+					+ " is not a sub directory of the server \n");
+			return;
+		}
+		clientSession.setCurrentDirectory(directory);
+		dos.writeBytes("250 Okay\n");
 	}
 
 	protected void processUSER(final String username) throws IOException {
@@ -131,7 +168,7 @@ public class FtpRequest {
 	 *             If an error occurs while trying to write on the socket.
 	 */
 	protected void processPWD(final String argument) throws IOException {
-		File directory = server.getRootDirectory();
+		File directory = clientSession.getCurrentDirectory();
 		String path = directory.getPath();
 		dos.writeBytes("257 " + path + "\n");
 	}
@@ -144,7 +181,7 @@ public class FtpRequest {
 	 * @throws IOException
 	 */
 	protected void processRETR(final String file) throws IOException {
-		File fileToRetrieve = new File(server.getRootDirectory()
+		File fileToRetrieve = new File(clientSession.getCurrentDirectory()
 				+ File.separator + file.trim());
 		if (!fileToRetrieve.exists()) {
 			dos.writeBytes("451 The file cannot be found on the server!\n");
@@ -179,7 +216,7 @@ public class FtpRequest {
 
 	protected void processLIST(final String argument) throws IOException {
 		dos = getOutputStream();
-		File directory = server.getRootDirectory();
+		File directory = clientSession.getCurrentDirectory();
 		String response = "";
 		for (File file : directory.listFiles()) {
 			String line = getListLine(file);
