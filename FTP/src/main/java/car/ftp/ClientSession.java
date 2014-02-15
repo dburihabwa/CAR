@@ -50,8 +50,8 @@ public class ClientSession {
 		return dataPort;
 	}
 
-	public void setPort(final int port) {
-		if (port < 0 || port > 65536) {
+	public void setDataPort(final int port) {
+		if (port < 0 || 65536 <= port) {
 			throw new IllegalArgumentException("Illegal port number:" + port);
 		}
 		this.dataPort = port;
@@ -61,23 +61,25 @@ public class ClientSession {
 		return dataAddress;
 	}
 
-	public void setDataAddress(String dataAddress) {
+	public void setDataAddress(final String dataAddress) {
+		if (dataAddress == null)
+			throw new IllegalArgumentException(
+					"argument dataAddress cannot be null");
+		if (dataAddress.isEmpty())
+			throw new IllegalArgumentException(
+					"argument dataAddress cannot be empty");
 		this.dataAddress = dataAddress;
-	}
-
-	public void setDataPort(int dataPort) {
-		this.dataPort = dataPort;
 	}
 
 	/**
 	 * Sets the current directory of the client.
-	 *
+	 * 
 	 * @param directory
 	 *            New directory
 	 * @thorws {@link IllegalArgumentException} If argument is null or not a
 	 *         directory
 	 */
-	public void setCurrentDirectory(File directory) {
+	public void setCurrentDirectory(final File directory) {
 		if (directory == null) {
 			throw new IllegalArgumentException(
 					"argument directory cannot be null!");
@@ -86,6 +88,6 @@ public class ClientSession {
 			throw new IllegalArgumentException(
 					"argument directory is not a directory : " + directory);
 		}
-		this.currentDirectory = directory;
+		this.currentDirectory = new File(directory.getAbsolutePath());
 	}
 }
