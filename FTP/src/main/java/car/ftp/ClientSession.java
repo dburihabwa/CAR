@@ -27,11 +27,14 @@ public class ClientSession {
 
 	}
 
-	public ClientSession(Socket commandSocket, boolean connected) {
-		super();
+	public ClientSession(final Socket commandSocket, final boolean connected) {
+		if (commandSocket == null) {
+			throw new IllegalArgumentException(
+					"argument commandSocket cannot be null");
+		}
 		this.commandSocket = commandSocket;
 		this.connected = connected;
-		this.currentDirectory = Server.SERVER.getRootDirectory();
+		this.currentDirectory = Server.getInstance().getRootDirectory();
 	}
 
 	public Socket getCommandSocket() {

@@ -14,47 +14,61 @@ public class Server {
 	/** Socket receiving client connections */
 	private ServerSocket socket;
 	/** Port number for the server */
-	private int port;
+	private int port = -1;
 	/** Root directory for the server */
 	private File rootDirectory;
 
-	private Logger logger = Logger.getAnonymousLogger();
+	private static Logger logger = Logger.getAnonymousLogger();
 
-	public static Server SERVER = null;
+	private static Server INSTANCE = null;
 
 	private Server() {
 		;
 	}
 
-	public static Server getServer(int port, String directoryPath) {
-		if (SERVER != null) {
-			return SERVER;
+	public static Server getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new Server();
 		}
-		SERVER = new Server();
-		SERVER.rootDirectory = new File(directoryPath);
-		SERVER.port = port;
-		if (!SERVER.rootDirectory.exists()) {
+		return INSTANCE;
+	}
+
+	public void init(final int port, final String directoryPath) {
+		this.rootDirectory = new File(directoryPath);
+		this.port = port;
+		if (!this.rootDirectory.exists()) {
 			throw new IllegalArgumentException("The directory does not exist!");
 		}
-		if (!SERVER.rootDirectory.isDirectory()) {
+		if (!this.rootDirectory.isDirectory()) {
 			throw new IllegalArgumentException(
 					"The directory path does not point to a directory!");
 		}
-		if (!SERVER.rootDirectory.canRead() || !SERVER.rootDirectory.canWrite()
-				|| !SERVER.rootDirectory.canExecute()) {
+		if (!this.rootDirectory.canRead() || !this.rootDirectory.canWrite()
+				|| !this.rootDirectory.canExecute()) {
 			throw new IllegalArgumentException(
 					"The server does run with the rights to read, write and execute on the directory!");
 		}
-		return SERVER;
 	}
 
+	/**
+	 * Starts the server.
+	 * 
+	 * @throws IOException
+	 *             In case an error occurs while trying to on the server's
+	 *             socket.
+	 */
 	public void start() throws IOException {
-		System.out.println("The server is now starting!");
+		if (this.port == -1 || this.rootDirectory == null) {
+			throw new IllegalStateException(
+					"The server has not been initialized yet!");
+		}
 		this.socket = null;
 		BufferedInputStream bis = null;
 		try {
 			socket = new ServerSocket(this.port);
-			logger.log(Level.INFO, "The server will now wait for connections on port " + this.port);
+			logger.log(Level.INFO,
+					"The server will now wait for connections on port "
+							+ this.port);
 			while (true) {
 				Socket clientSocket = socket.accept();
 				FtpWorker worker = new FtpWorker(clientSocket);
@@ -73,18 +87,26 @@ public class Server {
 	}
 
 	public ServerSocket getSocket() {
+		if (socket == null) {
+			throw new IllegalStateException(
+					"The server is not running at the moment!");
+		}
 		return socket;
 	}
 
 	public int getPort() {
+		if (port == -1) {
+			throw new IllegalStateException(
+					"The port has not been initialzed yet!");
+		}
 		return port;
 	}
 
 	public File getRootDirectory() {
+		if (rootDirectory == null) {
+			throw new IllegalStateException(
+					"The root directory has not been initialzed yet!");
+		}
 		return rootDirectory;
-	}
-
-	public static Server getSERVER() {
-		return SERVER;
 	}
 }

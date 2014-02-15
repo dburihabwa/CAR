@@ -43,6 +43,10 @@ public class FtpRequest {
 	}
 
 	public FtpRequest(final ClientSession clientSession) {
+		if (clientSession == null) {
+			throw new IllegalArgumentException(
+					"clientSession argument cannot be null!");
+		}
 		this.clientSession = clientSession;
 		this.flag = TYPE.A;
 	}
@@ -94,7 +98,7 @@ public class FtpRequest {
 
 	/**
 	 * Changes the client's current directory to the parent directory.
-	 *
+	 * 
 	 * @param argument
 	 *            Useless argument to match process methods prototype
 	 * @throws IOException
@@ -107,7 +111,7 @@ public class FtpRequest {
 
 	/**
 	 * Changes the current directory of the client.
-	 *
+	 * 
 	 * @param directoryString
 	 *            Relative or absolute path to the directory
 	 * @throws IOException
@@ -136,7 +140,7 @@ public class FtpRequest {
 			dos.writeBytes("550 " + directoryString + " is not a directory\n");
 			return;
 		}
-		Path rootPath = Server.SERVER.getRootDirectory().toPath();
+		Path rootPath = Server.getInstance().getRootDirectory().toPath();
 		if (!path.startsWith(rootPath)) {
 			dos.writeBytes("550 " + path
 					+ " is not a sub directory of the server \n");

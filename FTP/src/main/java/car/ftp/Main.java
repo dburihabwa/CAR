@@ -10,7 +10,8 @@ public class Main {
 		}
 		int port = Integer.parseInt(args[0]);
 		String directoryPath = args[1];
-		Server server = Server.getServer(port, directoryPath);
+		Server server = Server.getInstance();
+		server.init(port, directoryPath);
 		System.out.println("Starting server on port: " + port);
 		server.start();
 		System.out.println("Stopping server!");

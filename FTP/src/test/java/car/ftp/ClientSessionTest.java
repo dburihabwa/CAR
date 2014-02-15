@@ -16,7 +16,8 @@ import org.junit.Test;
 public class ClientSessionTest {
 	@Before
 	public void setup() {
-		Server.getServer(1024, ".");
+		Server server = Server.getInstance();
+		server.init(1024, ".");
 	}
 
 	// TODO Test setPort
