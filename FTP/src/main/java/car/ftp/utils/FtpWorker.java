@@ -35,20 +35,23 @@ public class FtpWorker implements Runnable {
 			dos.writeBytes("200 Connexion accepted!\n");
 			ClientSession clientSession = new ClientSession(socket, true);
 			FtpRequest ftpRequest = new FtpRequest(clientSession);
-			byte[] buffer = new byte[1024];
-			String command;
+			String command = null;
 			while (connected && !socket.isClosed()) {
 				System.out.println("Entering LOOP");
-				InputStreamReader isr = new InputStreamReader(socket.getInputStream());
+				InputStreamReader isr = new InputStreamReader(
+						socket.getInputStream());
 				BufferedReader br = new BufferedReader(isr);
-				command = br.readLine();
+				do {
+					command = br.readLine();
+				} while (command == null);
+				logger.log(Level.INFO, "Command : " + command);
 				ftpRequest.processRequest(command);
-				System.out.println("Waiting for new command");
+				logger.log(Level.INFO, "Waiting for new command");
+				command = null;
 			}
 			logger.log(Level.INFO, "The client closed the connection!");
 		} catch (IOException | UnsupportedCommandException e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
-			System.exit(1);
 		} finally {
 			if (bis != null) {
 				try {
