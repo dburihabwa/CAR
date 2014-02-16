@@ -7,9 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,12 +30,7 @@ public class FtpRequest {
 	private Logger logger = Logger.getAnonymousLogger();
 	private ClientSession clientSession;
 	private DataOutputStream dos;
-
-	private enum TYPE {
-		A, A_N, I, L_8
-	};
-
-	private TYPE flag;
+	private boolean binaryFlag;
 
 	@SuppressWarnings("unused")
 	private FtpRequest() {
@@ -48,7 +42,6 @@ public class FtpRequest {
 					"clientSession argument cannot be null!");
 		}
 		this.clientSession = clientSession;
-		this.flag = TYPE.A;
 	}
 
 	public DataOutputStream getOutputStream() throws IOException {
@@ -58,8 +51,14 @@ public class FtpRequest {
 		return this.dos;
 	}
 
-	public TYPE getFlag() {
-		return this.flag;
+	public Socket getDataSocket() throws UnknownHostException, IOException {
+		Socket socket = new Socket(clientSession.getDataAddress(),
+				clientSession.getDataPort());
+		return socket;
+	}
+
+	public boolean getBinaryFlag() {
+		return this.binaryFlag;
 	}
 
 	public void processRequest(final String commandString)
@@ -236,8 +235,7 @@ public class FtpRequest {
 		}
 
 		dos.writeBytes("150 Going to send " + file + "\n");
-		Socket dataSocket = new Socket(clientSession.getDataAddress(),
-				clientSession.getDataPort());
+		Socket dataSocket = getDataSocket();
 		FileInputStream fis = new FileInputStream(fileToRetrieve);
 		DataOutputStream cos = new DataOutputStream(
 				dataSocket.getOutputStream());
@@ -353,8 +351,7 @@ public class FtpRequest {
 				+ File.separator + file);
 		dos.writeBytes("150 Ready to receive file " + file + " \n");
 
-		Socket dataSocket = new Socket(clientSession.getDataAddress(),
-				clientSession.getDataPort());
+		Socket dataSocket = getDataSocket();
 		byte[] buffer = new byte[1024];
 		Calendar start = new GregorianCalendar();
 		DataInputStream cis = new DataInputStream(dataSocket.getInputStream());
@@ -377,20 +374,31 @@ public class FtpRequest {
 		dos.writeBytes("215 UNIX Type: L8\n");
 	}
 
+	/**
+	 * Sets the binary flag on or off on client's request.
+	 * 
+	 * @param typeString
+	 *            type argument describing whether the binary flag must be on or
+	 *            off
+	 * @throws IOException
+	 *             If an error occurs while writing on the command socket.
+	 */
 	protected void processTYPE(String typeString) throws IOException {
 		typeString = typeString.trim();
-		if (typeString.equalsIgnoreCase("A")) {
-			flag = TYPE.A;
-		} else if (typeString.equalsIgnoreCase("A N")) {
-			flag = TYPE.A_N;
-		} else if (typeString.equalsIgnoreCase("I")) {
-			flag = TYPE.I;
-		} else if (typeString.equalsIgnoreCase("L 8")) {
-			flag = TYPE.L_8;
+		String message = "set the binary flag ";
+		if (typeString.equalsIgnoreCase("A")
+				|| typeString.equalsIgnoreCase("A N")) {
+			binaryFlag = false;
+			message += "on";
+		} else if (typeString.equalsIgnoreCase("I")
+				|| typeString.equalsIgnoreCase("L 8")) {
+			binaryFlag = true;
+			message += "off";
 		} else {
-			logger.log(Level.WARNING, "could not parse type : " + typeString);
+			message = "could not parse type : " + typeString;
+			logger.log(Level.WARNING, message);
 		}
-		dos.writeBytes("200 \n");
+		dos.writeBytes("200 " + message + "\n");
 	}
 
 	protected void processQUIT(final String argument) throws IOException {
@@ -402,10 +410,7 @@ public class FtpRequest {
 	}
 
 	private String writeOnDataSocket(final String data) throws IOException {
-		Socket dataSocket = new Socket();
-		SocketAddress socketAddress = new InetSocketAddress(
-				clientSession.getDataAddress(), clientSession.getDataPort());
-		dataSocket.connect(socketAddress);
+		Socket dataSocket = getDataSocket();
 		DataOutputStream cos = new DataOutputStream(
 				dataSocket.getOutputStream());
 		cos.writeBytes(data);
