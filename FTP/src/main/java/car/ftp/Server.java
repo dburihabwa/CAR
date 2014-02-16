@@ -2,9 +2,11 @@ package main.java.car.ftp;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +19,7 @@ public class Server {
 	private int port = -1;
 	/** Root directory for the server */
 	private File rootDirectory;
+	public Properties users = new Properties();
 
 	private static Logger logger = Logger.getAnonymousLogger();
 
@@ -108,5 +111,33 @@ public class Server {
 					"The root directory has not been initialzed yet!");
 		}
 		return rootDirectory;
+	}
+
+	/**
+	 * Returns a map containing the authorized users and their password.
+	 * 
+	 * @return the authorized users and their password.
+	 */
+	public Properties getUsers() {
+		return this.users;
+	}
+
+	/**
+	 * Loads the list of users and their password from a file.
+	 * 
+	 * @param path
+	 *            Path to the user file
+	 */
+	public void loadUsers(final String path) {
+		if (path == null) {
+			throw new IllegalArgumentException("argument path cannot be null!");
+		}
+		try {
+			FileInputStream fis = new FileInputStream(path);
+			this.users.load(fis);
+			fis.close();
+		} catch (IOException e) {
+			logger.log(Level.WARNING, e.getMessage(), e);
+		}
 	}
 }

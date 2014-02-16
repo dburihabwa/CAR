@@ -150,13 +150,40 @@ public class FtpRequest {
 		dos.writeBytes("250 Okay\n");
 	}
 
+	/**
+	 * Records the user name in the client session.
+	 * 
+	 * @param username
+	 *            The user name of the client
+	 * @throws IOException
+	 *             If an error occurs while writing on the command socket.
+	 */
 	protected void processUSER(final String username) throws IOException {
 		dos = getOutputStream();
+		clientSession.setUsername(username);
 		dos.writeBytes("331 Username accepted, now expecting password!\n");
 	}
 
+	/**
+	 * Verifies the username and the password of the client to let her connect
+	 * to the server. In case of error the server returns a 530 error message
+	 * and closes the connection.
+	 * 
+	 * @param password
+	 *            Password of the client
+	 * @throws IOException
+	 *             If an error occurs while writing on the command socket.
+	 */
 	protected void processPASS(final String password) throws IOException {
 		dos = getOutputStream();
+		String username = clientSession.getUsername();
+		String expectedPassword = Server.getInstance().getUsers()
+				.getProperty(username);
+		if (expectedPassword == null && !username.equalsIgnoreCase("anonymous")) {
+			dos.writeBytes("530 The username and password didn't match!\n");
+			processQUIT(null);
+			return;
+		}
 		dos.writeBytes("230 Password accepted, please proceed!\n");
 	}
 

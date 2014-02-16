@@ -21,6 +21,7 @@ public class ClientSession {
 	private File currentDirectory;
 	private int dataPort = 0;
 	private String dataAddress;
+	private String username;
 
 	@SuppressWarnings("unused")
 	private ClientSession() {
@@ -92,5 +93,17 @@ public class ClientSession {
 					"argument directory is not a directory : " + directory);
 		}
 		this.currentDirectory = new File(directory.getAbsolutePath());
+	}
+
+	public String getUsername() {
+		return this.username;
+	}
+
+	public void setUsername(final String username) {
+		if (username == null) {
+			throw new IllegalArgumentException(
+					"username argument cannot be null");
+		}
+		this.username = username;
 	}
 }
