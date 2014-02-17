@@ -45,14 +45,26 @@ public class FtpWorker implements Runnable {
 					command = br.readLine();
 				} while (command == null);
 				logger.log(Level.INFO, "Command : " + command);
-				ftpRequest.processRequest(command);
+				try {
+					ftpRequest.processRequest(command);
+				} catch (UnsupportedCommandException e) {
+					logger.log(Level.WARNING, e.getMessage(), e);
+					dos.writeBytes("502 The client's request cannot be fulfilled by the server\n");
+				}
 				logger.log(Level.INFO, "Waiting for new command");
 				command = null;
 			}
 			logger.log(Level.INFO, "The client closed the connection!");
-		} catch (IOException | UnsupportedCommandException e) {
+		} catch (IOException e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
+			try {
+				dos.writeBytes("451 An error occured while processing the client's request!\n");
+			} catch (IOException e1) {
+				logger.log(Level.SEVERE, "Cannot recover from error");
+				System.exit(1);
+			}
 		} finally {
+
 			if (bis != null) {
 				try {
 					bis.close();

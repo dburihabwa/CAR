@@ -36,11 +36,6 @@ public class CommandParser {
 			if (tokens[0].equalsIgnoreCase(c.name())) {
 				command = c;
 				argument = message.replaceFirst(tokens[0], "").trim();
-				System.out.println("parsed : " + c.name() + " " + argument);
-//				argument = "";
-//				if (tokens.length >= 2) {
-//					argument = tokens[1];
-//				}
 				break;
 			}
 		}
