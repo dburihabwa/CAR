@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -52,9 +53,7 @@ public class FtpRequest {
 	}
 
 	public Socket getDataSocket() throws UnknownHostException, IOException {
-		Socket socket = new Socket(clientSession.getDataAddress(),
-				clientSession.getDataPort());
-		return socket;
+		return clientSession.getDataSocket();
 	}
 
 	public boolean getBinaryFlag() {
@@ -187,13 +186,24 @@ public class FtpRequest {
 	}
 
 	protected void processPASV(final String argument) throws IOException {
-		// TODO: truly implement
-		dos.writeBytes("202 Not implmented yet!\n");
+		ServerSocket ss = clientSession.setPassiveMode();
+		String address = "";
+		for (byte b : ss.getInetAddress().getAddress()) {
+			address += "" + b + ",";
+		}
+		int port = clientSession.getDataPort();
+		int first = port / 256;
+		int second = port % 256;
+
+		String message = address + first + "," + second;
+
+		logger.log(Level.INFO, "The server is now in passive mode!");
+		dos.writeBytes("227 " + message + "\n");
 	}
 
 	protected void processPORT(final String argument) throws IOException {
 		dos = getOutputStream();
-		System.out.println("processPORT: " + argument);
+		clientSession.setActiveMode();
 		String arg = argument;
 		String[] tokens = arg.split(",");
 		String address = tokens[0] + "." + tokens[1] + "." + tokens[2] + "."
@@ -202,6 +212,7 @@ public class FtpRequest {
 		int port = (Integer.parseInt(tokens[4]) * 256)
 				+ Integer.parseInt(tokens[5]);
 		clientSession.setDataPort(port);
+		logger.log(Level.INFO, "The server is now in active mode!");
 		dos.writeBytes("200 Address and port number has been saved! \n");
 	}
 

@@ -1,7 +1,11 @@
 package main.java.car.ftp;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Keeps all the data related to the client session:
@@ -22,6 +26,10 @@ public class ClientSession {
 	private int dataPort = 0;
 	private String dataAddress;
 	private String username;
+	public ServerSocket serverSocket;
+	private Socket passiveSocket;
+
+	private final Logger logger = Logger.getAnonymousLogger();
 
 	@SuppressWarnings("unused")
 	private ClientSession() {
@@ -105,5 +113,37 @@ public class ClientSession {
 					"username argument cannot be null");
 		}
 		this.username = username;
+	}
+
+	public Socket getDataSocket() throws IOException {
+		Socket socket = null;
+		if (serverSocket != null) {
+			socket = passiveSocket;
+		} else {
+			socket = new Socket(dataAddress, dataPort);
+		}
+		return socket;
+	}
+
+	public ServerSocket setPassiveMode() throws IOException {
+		this.serverSocket = new ServerSocket(0);
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					serverSocket.setSoTimeout(15000);
+					passiveSocket = serverSocket.accept();
+				} catch (IOException e) {
+					logger.log(Level.WARNING, "The server didn't revceive any connection from the client", e);
+				}
+			}
+		});
+		t.start();
+		this.dataPort = this.serverSocket.getLocalPort();
+		return this.serverSocket;
+	}
+
+	public void setActiveMode() {
+		this.serverSocket = null;
 	}
 }
