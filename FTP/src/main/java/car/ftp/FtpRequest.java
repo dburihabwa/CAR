@@ -177,7 +177,10 @@ public class FtpRequest {
 		String username = clientSession.getUsername();
 		String expectedPassword = Server.getInstance().getUsers()
 				.getProperty(username);
-		if (expectedPassword == null && !username.equalsIgnoreCase("anonymous")) {
+		if ((expectedPassword == null || !expectedPassword.equals(password))
+				&& !username.equalsIgnoreCase("anonymous")) {
+			System.err.println(username + ":" + password);
+			System.err.println("expectedPassword: " + expectedPassword);
 			dos.writeBytes("530 The username and password didn't match!\n");
 			processQUIT(null);
 			return;
@@ -348,7 +351,6 @@ public class FtpRequest {
 			sdf = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
 		}
 		String modifiedTime = sdf.format(date);
-		// TODO : see number of links
 		String numberOfLinks = "1";
 
 		line += permission + " " + numberOfLinks + " " + owner + " " + group
@@ -413,10 +415,12 @@ public class FtpRequest {
 	}
 
 	protected void processQUIT(final String argument) throws IOException {
+		dos = getOutputStream();
+		dos.writeBytes("221 Bye \n");
 		if (dos != null)
 			dos.close();
 		Socket commandSocket = clientSession.getCommandSocket();
-		if (commandSocket != null && !commandSocket.isClosed())
+		if (commandSocket != null)
 			commandSocket.close();
 	}
 

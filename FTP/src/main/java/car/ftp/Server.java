@@ -40,7 +40,7 @@ public class Server {
 		this.rootDirectory = new File(directoryPath);
 		this.port = port;
 		if (!this.rootDirectory.exists()) {
-			throw new IllegalArgumentException("The directory does not exist!");
+			throw new IllegalArgumentException("The directory " + rootDirectory + " does not exist!");
 		}
 		if (!this.rootDirectory.isDirectory()) {
 			throw new IllegalArgumentException(
