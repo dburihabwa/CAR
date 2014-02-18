@@ -169,8 +169,9 @@ public class Server {
 	 * 
 	 * @param path
 	 *            Path to the user file
+	 * @throws IOException 
 	 */
-	public void loadUsers(final String path) {
+	public void loadUsers(final String path) throws IOException {
 		if (path == null) {
 			throw new IllegalArgumentException("argument path cannot be null!");
 		}
@@ -180,6 +181,7 @@ public class Server {
 			fis.close();
 		} catch (IOException e) {
 			logger.log(Level.WARNING, e.getMessage(), e);
+			throw e;
 		}
 	}
 }

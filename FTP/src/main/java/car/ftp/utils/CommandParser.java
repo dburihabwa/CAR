@@ -42,8 +42,7 @@ public class CommandParser {
 
 		if (command == null) {
 			throw new UnsupportedCommandException(
-					"The command was not recognized by the parser or authorizes by the server: "
-							+ tokens[0]);
+					"202 Unsupported command");
 		}
 
 		Command interpretedCommand = new Command(command, argument);

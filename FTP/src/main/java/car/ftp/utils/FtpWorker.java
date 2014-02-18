@@ -16,7 +16,7 @@ import main.java.car.ftp.exceptions.UnsupportedCommandException;
 /**
  * Servers as a command receiver for a client. All messages sent by client will
  * be first read by a {@link FtpWorker} that will then call on a
- * {@link FtpRequest} to handle the request. 
+ * {@link FtpRequest} to handle the request.
  * 
  * @author dorian
  * 
@@ -31,9 +31,9 @@ public class FtpWorker implements Runnable {
 		this.socket = socket;
 	}
 
-	
 	/**
-	 * Reads the inpur from the user
+	 * Reads the input from the user in a loop and then lets an
+	 * {@link FtpRequest} handle the request.
 	 */
 	public void run() {
 		BufferedInputStream bis = null;
@@ -58,7 +58,7 @@ public class FtpWorker implements Runnable {
 					ftpRequest.processRequest(command);
 				} catch (UnsupportedCommandException e) {
 					logger.log(Level.WARNING, e.getMessage(), e);
-					dos.writeBytes("502 The client's request cannot be fulfilled by the server\n");
+					dos.writeBytes(e.getMessage() + "\n");
 				}
 				logger.log(Level.INFO, "Waiting for new command");
 				command = null;

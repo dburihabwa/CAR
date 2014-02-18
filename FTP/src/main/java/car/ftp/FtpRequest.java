@@ -119,14 +119,9 @@ public class FtpRequest {
 				System.exit(1);
 			}
 		} else {
-			try {
-				dos = getOutputStream();
-				dos.writeBytes("202 Command not supported!\n");
-				dos.flush();
-			} catch (IOException e) {
-				logger.log(Level.SEVERE, e.getMessage());
-				System.exit(2);
-			}
+			String message = "502 Support for the command is not implemented!";
+			logger.log(Level.WARNING, message);
+			throw new UnsupportedCommandException(message);
 		}
 
 	}
@@ -303,6 +298,12 @@ public class FtpRequest {
 
 		dos.writeBytes("150 Going to send " + file + "\n");
 		Socket dataSocket = getDataSocket();
+		if (dataSocket == null) {
+			String message = "425 No data connection has been estblished with the client";
+			dos.writeBytes(message);
+			logger.log(Level.SEVERE, message);
+			throw new IOException("");
+		}
 		FileInputStream fis = new FileInputStream(fileToRetrieve);
 		DataOutputStream cos = new DataOutputStream(
 				dataSocket.getOutputStream());
@@ -319,7 +320,7 @@ public class FtpRequest {
 
 		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
 		logger.log(Level.INFO, "Sent " + file + " in " + time + "s");
-
+		clientSession.setActiveMode();
 		dos.writeBytes("226 The file was succesfully sent!\n");
 	}
 
@@ -342,6 +343,8 @@ public class FtpRequest {
 		}
 		dos.writeBytes("150 About to read directory content!\n");
 		writeOnDataSocket(response);
+
+		clientSession.setActiveMode();
 		dos.writeBytes("200 \n");
 	}
 
@@ -459,6 +462,7 @@ public class FtpRequest {
 		dataSocket.close();
 		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
 		logger.log(Level.INFO, "Transfered " + file + " in " + time + "s");
+		clientSession.setActiveMode();
 		dos.writeBytes("226 Received and executed STOR " + file + " \n");
 	}
 
