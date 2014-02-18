@@ -44,7 +44,7 @@ public class FtpRequestTest {
 		server.loadUsers("./users.properties");
 		System.out.println();
 		serverThread = new Thread(new Runnable() {
-			@Override
+			
 			public void run() {
 				try {
 					server.start();

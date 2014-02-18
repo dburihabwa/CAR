@@ -138,7 +138,6 @@ public class ClientSession {
 	public ServerSocket setPassiveMode() throws IOException {
 		this.serverSocket = new ServerSocket(0);
 		Thread t = new Thread(new Runnable() {
-			@Override
 			public void run() {
 				try {
 					serverSocket.setSoTimeout(15000);

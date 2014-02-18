@@ -31,7 +31,7 @@ public class FtpWorker implements Runnable {
 		this.socket = socket;
 	}
 
-	@Override
+	
 	/**
 	 * Reads the inpur from the user
 	 */
