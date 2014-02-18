@@ -1,6 +1,14 @@
 package main.java.car.ftp;
 
+/**
+ * Reprensentation of command as sent by the client to the server. The command
+ * is split between two components a VERB and an argument
+ * 
+ * @author dorian
+ * 
+ */
 public class Command {
+	/** List of commands that server presents as implemented to the clients */
 	public static enum AuhtorizedCommand {
 		CDUP, CWD, FEAT, LIST, PASS, PASV, PORT, PWD, QUIT, RETR, STOR, SYST, TYPE, USER
 	};
