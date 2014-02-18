@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  * <ul>
  * <li>command socket</li>
  * <li>current directory></li>
- * <li>data socket</li>
+ * <li>data socket information</li>
  * <li></li>
  * </ul>
  * 
@@ -115,6 +115,14 @@ public class ClientSession {
 		this.username = username;
 	}
 
+	/**
+	 * Tries to return the data socket regrardless of whether the server is in
+	 * active or passive mode.
+	 * 
+	 * @return Data socket
+	 * @throws IOException
+	 *             If an error occurs while getting the new data socket
+	 */
 	public Socket getDataSocket() throws IOException {
 		Socket socket = null;
 		if (serverSocket != null) {
@@ -125,6 +133,14 @@ public class ClientSession {
 		return socket;
 	}
 
+	/**
+	 * Sets the client in passive mode and passively listens for a client
+	 * connection that will be used in a future command.
+	 * 
+	 * @return The server socket that is listening for the new connection.
+	 * @throws IOException
+	 *             If an error occurs while setting up the socket server
+	 */
 	public ServerSocket setPassiveMode() throws IOException {
 		this.serverSocket = new ServerSocket(0);
 		Thread t = new Thread(new Runnable() {
@@ -134,7 +150,10 @@ public class ClientSession {
 					serverSocket.setSoTimeout(15000);
 					passiveSocket = serverSocket.accept();
 				} catch (IOException e) {
-					logger.log(Level.WARNING, "The server didn't revceive any connection from the client", e);
+					logger.log(
+							Level.WARNING,
+							"The server didn't revceive any connection from the client",
+							e);
 				}
 			}
 		});
@@ -143,6 +162,10 @@ public class ClientSession {
 		return this.serverSocket;
 	}
 
+	/**
+	 * Sets the server in active mode by cleaning up what was setup by the
+	 * setPassive method.
+	 */
 	public void setActiveMode() {
 		this.serverSocket = null;
 	}
