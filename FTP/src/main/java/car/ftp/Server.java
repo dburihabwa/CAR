@@ -12,6 +12,13 @@ import java.util.logging.Logger;
 
 import main.java.car.ftp.utils.FtpWorker;
 
+/**
+ * Server that listens for incoming connections and dispatches the new clients
+ * to a specific thread that will handle their requests.
+ * 
+ * @author dorian
+ * 
+ */
 public class Server {
 	/** Socket receiving client connections */
 	private ServerSocket socket;
@@ -19,16 +26,25 @@ public class Server {
 	private int port = -1;
 	/** Root directory for the server */
 	private File rootDirectory;
+	/** List of authorized users and their passwords */
 	public Properties users = new Properties();
 
 	private static Logger logger = Logger.getAnonymousLogger();
 
+	/**
+	 * Singleton {@link Server} instance.
+	 */
 	private static Server INSTANCE = null;
 
 	private Server() {
 		;
 	}
 
+	/**
+	 * Returns the singleton instance of server.
+	 * 
+	 * @return the singleton instance of server.
+	 */
 	public static Server getInstance() {
 		if (INSTANCE == null) {
 			INSTANCE = new Server();
@@ -36,11 +52,20 @@ public class Server {
 		return INSTANCE;
 	}
 
+	/**
+	 * Initialize the basici parameters for the server to run.
+	 * 
+	 * @param port
+	 *            The port the server should running on
+	 * @param directoryPath
+	 *            Path to the root directory of the server
+	 */
 	public void init(final int port, final String directoryPath) {
 		this.rootDirectory = new File(directoryPath);
 		this.port = port;
 		if (!this.rootDirectory.exists()) {
-			throw new IllegalArgumentException("The directory " + rootDirectory + " does not exist!");
+			throw new IllegalArgumentException("The directory " + rootDirectory
+					+ " does not exist!");
 		}
 		if (!this.rootDirectory.isDirectory()) {
 			throw new IllegalArgumentException(
@@ -89,6 +114,11 @@ public class Server {
 		}
 	}
 
+	/**
+	 * Returns the server Socket that accepts connections.
+	 * 
+	 * @return The server Socket that accepts connections.
+	 */
 	public ServerSocket getSocket() {
 		if (socket == null) {
 			throw new IllegalStateException(
@@ -97,6 +127,13 @@ public class Server {
 		return socket;
 	}
 
+	/**
+	 * Returns the port number that on which the server listening for new
+	 * connections.
+	 * 
+	 * @return Port number that on which the server listening for new
+	 *         connections.
+	 */
 	public int getPort() {
 		if (port == -1) {
 			throw new IllegalStateException(
@@ -105,6 +142,11 @@ public class Server {
 		return port;
 	}
 
+	/**
+	 * Returns the location of the root directory.
+	 * 
+	 * @return The server's root directory
+	 */
 	public File getRootDirectory() {
 		if (rootDirectory == null) {
 			throw new IllegalStateException(
