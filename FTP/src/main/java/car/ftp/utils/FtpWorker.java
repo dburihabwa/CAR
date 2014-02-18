@@ -13,19 +13,28 @@ import main.java.car.ftp.ClientSession;
 import main.java.car.ftp.FtpRequest;
 import main.java.car.ftp.exceptions.UnsupportedCommandException;
 
+/**
+ * Servers as a command receiver for a client. All messages sent by client will
+ * be first read by a {@link FtpWorker} that will then call on a
+ * {@link FtpRequest} to handle the request. 
+ * 
+ * @author dorian
+ * 
+ */
 public class FtpWorker implements Runnable {
 	private Socket socket;
-	private boolean connected;
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public FtpWorker(Socket socket) {
 		if (socket == null)
 			throw new IllegalArgumentException("socket argument cannot be null");
 		this.socket = socket;
-		this.connected = true;
 	}
 
 	@Override
+	/**
+	 * Reads the inpur from the user
+	 */
 	public void run() {
 		BufferedInputStream bis = null;
 		DataOutputStream dos = null;
@@ -36,7 +45,7 @@ public class FtpWorker implements Runnable {
 			ClientSession clientSession = new ClientSession(socket, true);
 			FtpRequest ftpRequest = new FtpRequest(clientSession);
 			String command = null;
-			while (connected && !socket.isClosed()) {
+			while (!socket.isClosed()) {
 				System.out.println("Entering LOOP");
 				InputStreamReader isr = new InputStreamReader(
 						socket.getInputStream());

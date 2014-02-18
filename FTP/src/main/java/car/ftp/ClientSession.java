@@ -21,7 +21,6 @@ import java.util.logging.Logger;
  */
 public class ClientSession {
 	private Socket commandSocket;
-	private boolean connected;
 	private File currentDirectory;
 	private int dataPort = 0;
 	private String dataAddress;
@@ -42,7 +41,6 @@ public class ClientSession {
 					"argument commandSocket cannot be null");
 		}
 		this.commandSocket = commandSocket;
-		this.connected = connected;
 		this.currentDirectory = Server.getInstance().getRootDirectory();
 	}
 
@@ -52,10 +50,6 @@ public class ClientSession {
 
 	public File getCurrentDirectory() {
 		return currentDirectory;
-	}
-
-	public boolean isConnected() {
-		return connected;
 	}
 
 	public int getDataPort() {
