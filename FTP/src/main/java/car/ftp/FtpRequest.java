@@ -115,8 +115,7 @@ public class FtpRequest {
 				handler.invoke(this, command.getArgument());
 				dos.flush();
 			} catch (Exception e) {
-				logger.log(Level.SEVERE, e.getMessage(), e);
-				System.exit(1);
+				logger.log(Level.WARNING, e.getMessage(), e);
 			}
 		} else {
 			String message = "502 Support for the command is not implemented!";
@@ -302,7 +301,7 @@ public class FtpRequest {
 			String message = "425 No data connection has been estblished with the client";
 			dos.writeBytes(message);
 			logger.log(Level.SEVERE, message);
-			throw new IOException("");
+			throw new IOException(message);
 		}
 		FileInputStream fis = new FileInputStream(fileToRetrieve);
 		DataOutputStream cos = new DataOutputStream(
@@ -448,6 +447,12 @@ public class FtpRequest {
 		dos.writeBytes("150 Ready to receive file " + file + " \n");
 
 		Socket dataSocket = getDataSocket();
+		if (dataSocket == null) {
+			String message = "425 No data connection has been estblished with the client";
+			dos.writeBytes(message);
+			logger.log(Level.SEVERE, message);
+			throw new IOException(message);
+		}
 		byte[] buffer = new byte[1024];
 		Calendar start = new GregorianCalendar();
 		DataInputStream cis = new DataInputStream(dataSocket.getInputStream());
