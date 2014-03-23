@@ -41,7 +41,7 @@ public class FtpWorker implements Runnable {
 		try {
 			bis = new BufferedInputStream(socket.getInputStream());
 			dos = new DataOutputStream(socket.getOutputStream());
-			dos.writeBytes("200 Connexion accepted!\n");
+			dos.writeBytes("200 Welcome!\r\n");
 			ClientSession clientSession = new ClientSession(socket, true);
 			FtpRequest ftpRequest = new FtpRequest(clientSession);
 			String command = null;
@@ -58,7 +58,7 @@ public class FtpWorker implements Runnable {
 					ftpRequest.processRequest(command);
 				} catch (UnsupportedCommandException e) {
 					logger.log(Level.WARNING, e.getMessage(), e);
-					dos.writeBytes(e.getMessage() + "\n");
+					dos.writeBytes(e.getMessage() + "\r\n");
 				}
 				logger.log(Level.INFO, "Waiting for new command");
 				command = null;
@@ -67,7 +67,7 @@ public class FtpWorker implements Runnable {
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			try {
-				dos.writeBytes("451 An error occured while processing the client's request!\n");
+				dos.writeBytes("451 An error occured while processing the client's request!\r\n");
 			} catch (IOException e1) {
 				logger.log(Level.SEVERE, "Cannot recover from error");
 				System.exit(1);

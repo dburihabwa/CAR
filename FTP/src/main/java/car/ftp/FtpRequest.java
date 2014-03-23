@@ -39,6 +39,7 @@ public class FtpRequest {
 	private ClientSession clientSession;
 	private DataOutputStream dos;
 	private boolean binaryFlag;
+	private static final int DEFAULT_BLOCK_SIZE = 4096; 
 
 	@SuppressWarnings("unused")
 	private FtpRequest() {
@@ -159,24 +160,23 @@ public class FtpRequest {
 		}
 		path = path.normalize();
 		File directory = new File(path.toString());
-		System.out.println("newDirectory :" + path.toString());
 		if (!directory.exists()) {
 			dos.writeBytes("550 No such file or directory: "
-					+ directory.getAbsolutePath() + "\n");
+					+ directory.getAbsolutePath() + "\r\n");
 			return;
 		}
 		if (!directory.isDirectory()) {
-			dos.writeBytes("550 " + directoryString + " is not a directory\n");
+			dos.writeBytes("550 " + directoryString + " is not a directory\r\n");
 			return;
 		}
 		Path rootPath = Server.getInstance().getRootDirectory().toPath();
 		if (!path.startsWith(rootPath)) {
 			dos.writeBytes("550 " + path
-					+ " is not a sub directory of the server \n");
+					+ " is not a sub directory of the server \r\n");
 			return;
 		}
 		clientSession.setCurrentDirectory(directory);
-		dos.writeBytes("250 Okay\n");
+		dos.writeBytes("250 Okay\r\n");
 	}
 
 	/**
@@ -190,7 +190,7 @@ public class FtpRequest {
 	protected void processUSER(final String username) throws IOException {
 		dos = getOutputStream();
 		clientSession.setUsername(username);
-		dos.writeBytes("331 Username accepted, now expecting password!\n");
+		dos.writeBytes("331 Username accepted, now expecting password!\r\n");
 	}
 
 	/**
@@ -212,11 +212,11 @@ public class FtpRequest {
 				&& !username.equalsIgnoreCase("anonymous")) {
 			System.err.println(username + ":" + password);
 			System.err.println("expectedPassword: " + expectedPassword);
-			dos.writeBytes("530 The username and password didn't match!\n");
+			dos.writeBytes("530 The username and password didn't match!\r\n");
 			processQUIT(null);
 			return;
 		}
-		dos.writeBytes("230 Password accepted, please proceed!\n");
+		dos.writeBytes("230 Password accepted, please proceed!\r\n");
 	}
 
 	/**
@@ -240,7 +240,7 @@ public class FtpRequest {
 		String message = address + first + "," + second;
 
 		logger.log(Level.INFO, "The server is now in passive mode!");
-		dos.writeBytes("227 " + message + "\n");
+		dos.writeBytes("227 " + message + "\r\n");
 	}
 
 	/**
@@ -263,7 +263,7 @@ public class FtpRequest {
 				+ Integer.parseInt(tokens[5]);
 		clientSession.setDataPort(port);
 		logger.log(Level.INFO, "The server is now in active mode!");
-		dos.writeBytes("200 Address and port number has been saved! \n");
+		dos.writeBytes("200 Address and port number has been saved! \r\n");
 	}
 
 	/**
@@ -275,9 +275,9 @@ public class FtpRequest {
 	 *             If an error occurs while trying to write on the socket.
 	 */
 	protected void processPWD(final String argument) throws IOException {
-		File directory = clientSession.getCurrentDirectory();
-		String path = directory.getPath();
-		dos.writeBytes("257 " + path + "\n");
+		Path directory = clientSession.getCurrentDirectory().toPath();
+        Path rootDirectory = Server.getInstance().getRootDirectory().toPath();
+		dos.writeBytes("257 " + rootDirectory.relativize(directory) + "\r\n");
 	}
 
 	/**
@@ -291,11 +291,11 @@ public class FtpRequest {
 		File fileToRetrieve = new File(clientSession.getCurrentDirectory()
 				+ File.separator + file.trim());
 		if (!fileToRetrieve.exists()) {
-			dos.writeBytes("451 The file cannot be found on the server!\n");
+			dos.writeBytes("451 The file cannot be found on the server!\r\n");
 			return;
 		}
 
-		dos.writeBytes("150 Going to send " + file + "\n");
+		dos.writeBytes("150 Going to send " + file + "\r\n");
 		Socket dataSocket = getDataSocket();
 		if (dataSocket == null) {
 			String message = "425 No data connection has been estblished with the client";
@@ -306,7 +306,7 @@ public class FtpRequest {
 		FileInputStream fis = new FileInputStream(fileToRetrieve);
 		DataOutputStream cos = new DataOutputStream(
 				dataSocket.getOutputStream());
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		Calendar start = new GregorianCalendar();
 		int read = 0;
 		while ((read = fis.read(buffer)) > 0) {
@@ -320,7 +320,7 @@ public class FtpRequest {
 		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
 		logger.log(Level.INFO, "Sent " + file + " in " + time + "s");
 		clientSession.setActiveMode();
-		dos.writeBytes("226 The file was succesfully sent!\n");
+		dos.writeBytes("226 The file was succesfully sent!\r\n");
 	}
 
 	/**
@@ -340,11 +340,11 @@ public class FtpRequest {
 			String line = getListLine(file);
 			response += line;
 		}
-		dos.writeBytes("150 About to read directory content!\n");
+		dos.writeBytes("150 About to read directory content!\r\n");
 		writeOnDataSocket(response);
 
 		clientSession.setActiveMode();
-		dos.writeBytes("200 \n");
+		dos.writeBytes("200 \r\n");
 	}
 
 	/**
@@ -444,16 +444,16 @@ public class FtpRequest {
 	protected void processSTOR(final String file) throws IOException {
 		File newFile = new File(clientSession.getCurrentDirectory()
 				+ File.separator + file);
-		dos.writeBytes("150 Ready to receive file " + file + " \n");
+		dos.writeBytes("150 Ready to receive file " + file + " \r\n");
 
 		Socket dataSocket = getDataSocket();
 		if (dataSocket == null) {
-			String message = "425 No data connection has been estblished with the client";
+			String message = "425 No data connection has been estblished with the client\r\n";
 			dos.writeBytes(message);
 			logger.log(Level.SEVERE, message);
 			throw new IOException(message);
 		}
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		Calendar start = new GregorianCalendar();
 		DataInputStream cis = new DataInputStream(dataSocket.getInputStream());
 		FileOutputStream fos = new FileOutputStream(newFile);
@@ -468,7 +468,7 @@ public class FtpRequest {
 		double time = ((double) end.getTimeInMillis() - start.getTimeInMillis()) / 1000.0;
 		logger.log(Level.INFO, "Transfered " + file + " in " + time + "s");
 		clientSession.setActiveMode();
-		dos.writeBytes("226 Received and executed STOR " + file + " \n");
+		dos.writeBytes("226 Received and executed STOR " + file + " \r\n");
 	}
 
 	/**
@@ -481,7 +481,7 @@ public class FtpRequest {
 	 */
 	protected void processSYST(final String argument) throws IOException {
 		getOutputStream();
-		dos.writeBytes("215 UNIX Type: L8\n");
+		dos.writeBytes("215 UNIX Type: L8\r\n");
 	}
 
 	/**
@@ -508,7 +508,7 @@ public class FtpRequest {
 			message = "could not parse type : " + typeString;
 			logger.log(Level.WARNING, message);
 		}
-		dos.writeBytes("200 " + message + "\n");
+		dos.writeBytes("200 " + message + "\r\n");
 	}
 
 	/**
@@ -522,7 +522,7 @@ public class FtpRequest {
 	 */
 	protected void processQUIT(final String argument) throws IOException {
 		dos = getOutputStream();
-		dos.writeBytes("221 Bye \n");
+		dos.writeBytes("221 Bye \r\n");
 		if (dos != null)
 			dos.close();
 		Socket commandSocket = clientSession.getCommandSocket();
@@ -546,6 +546,11 @@ public class FtpRequest {
 		cos.writeBytes(data);
 		cos.close();
 		dataSocket.close();
+		return data;
+	}
+	
+	private String writeOnCommanSocket(final String data) throws IOException {
+		this.getOutputStream().writeBytes(data + "\r\n");
 		return data;
 	}
 }
