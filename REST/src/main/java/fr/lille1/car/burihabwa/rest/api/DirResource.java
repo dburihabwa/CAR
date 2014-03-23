@@ -9,13 +9,11 @@ import fr.lille1.car.burihabwa.rest.utils.FTPAdapterImpl;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -29,7 +27,7 @@ import org.apache.commons.net.ftp.FTPFile;
  *
  * @author dorian
  */
-@Path("/dir")
+@Path("")
 public class DirResource {
 
     @Context
@@ -45,8 +43,9 @@ public class DirResource {
     }
 
     @GET
+    @Path("/dir")
     @Produces("text/html")
-    public String list() throws IOException {
+    public Response list() throws IOException {
         return list(null);
     }
 
@@ -58,8 +57,8 @@ public class DirResource {
      */
     @GET
     @Produces("text/html")
-    @Path("{path: .*}")
-    public String list(@PathParam("path") String path) throws IOException {
+    @Path("/dir/{path:.*}")
+    public Response list(@PathParam("path") String path) throws IOException {
         FTPAdapterImpl adapter = null;
         FTPFile[] files = null;
         String content = "<!DOCTYPE html>\n";
@@ -77,7 +76,8 @@ public class DirResource {
             content += "\t<p>" + ex.getMessage() + "</p>\n";
             content += "</body>\n";
             content += "</html>\n";
-            return content;
+            Response.ResponseBuilder response = Response.ok(content, MediaType.TEXT_HTML);
+            return response.build();
         } finally {
             if (adapter != null) {
                 adapter.close();
@@ -92,6 +92,14 @@ public class DirResource {
         content += "\t\t\t</tr>\n";
         content += "\t\t<thead>\n";
         content += "\t\t<tbody>\n";
+        content += "\t\t\t<tr>\n";
+        content += "\t\t\t\t<td><a href =\"" + path + "\">.</a></td>\n";
+        content += "\t\t\t\t<td></td>\n";
+        content += "\t\t\t</tr>\n";
+        content += "\t\t\t<tr>\n";
+        content += "\t\t\t\t<td><a href =\"" + adapter.getParentDirectory(path) + "\">..</a></td>\n";
+        content += "\t\t\t\t<td></td>\n";
+        content += "\t\t\t</tr>\n";
         for (FTPFile file : files) {
             content += "\t\t\t<tr>\n";
             content += "\t\t\t\t<td>";
@@ -120,12 +128,13 @@ public class DirResource {
         content += "\t</table>\n";
         content += "</body>\n";
         content += "</html>\n";
-        return content;
+        Response.ResponseBuilder response = Response.ok(content, MediaType.TEXT_HTML);
+        return response.build();
     }
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{path: .*}")
+    @Path("/dir/{path:.*}")
     public String listJSON(@PathParam("path") String path) throws IOException {
         FTPAdapterImpl adapter = null;
         FTPFile[] files = null;
@@ -155,12 +164,13 @@ public class DirResource {
 
     @DELETE
     @Produces(MediaType.TEXT_PLAIN)
+    @Path("/dir/{path:.*}")
     public String delete(@PathParam("path") String path) {
         Response.ResponseBuilder response = Response.ok();
         FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
         boolean result = false;
         try {
-            result = adapter.delete(path);
+            result = adapter.rmdir(path);
         } catch (IOException ex) {
             Logger.getLogger(DirResource.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -174,24 +184,28 @@ public class DirResource {
         //return response.build();
     }
 
-    @POST
-    @Produces(MediaType.TEXT_PLAIN)
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public String post(@PathParam("path") String path) {
-        boolean result = false;
-        if (result) {
-            return "successful POST of " + path + "!\n";
-        }
-        return "unsuccesful POST of " + path + "!\n";
-    }
-    
     @PUT
     @Produces(MediaType.TEXT_PLAIN)
-    public String put(@PathParam("path") String path) {
-        boolean result = false;
-        if (result) {
-            return "successful PUT of " + path + "!\n";
+    @Path("/dir/{path:.*}")
+    public Response put(@PathParam("path") String path) throws IOException {
+        String message = "PUT /api/dir/" + path;
+        Logger.getLogger(FileResource.class.getName()).log(Level.INFO, message);
+        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+        try {
+            boolean result = adapter.mkdir(path);
+            if (result) {
+                message += ": SUCCESS";
+            } else {
+                message += ": FAILURE";
+            }
+        } catch (IOException e) {
+            Logger.getLogger(FileResource.class.getName()).log(Level.WARNING, e.getMessage());
+            message += e.getMessage();
+        } finally {
+            adapter.close();
         }
-        return "unsuccesful PUT of " + path + "!\n";
+
+        Response.ResponseBuilder response = Response.ok(message).status(200);
+        return response.build();
     }
 }

@@ -49,12 +49,12 @@ public class FTPAdapterImpl implements FTPAdapter {
             throw new IOException("Wrong username and password!");
         }
         if (path != null && !path.isEmpty()) {
-            if (this.exists(path)) {
+            if (!isDirectory(path)) {
                 throw new IOException("Directory does not exist");
             }
-            if (!this.client.changeWorkingDirectory(path)) {
-                throw new IOException("Could not change directory!");
-            }
+            System.out.println("Trying to move to " + path);
+            this.client.changeWorkingDirectory(path);
+            System.out.println("Currently in " + this.client.printWorkingDirectory());
         }
         FTPFile[] files = client.listFiles();
         return files;
@@ -213,7 +213,7 @@ public class FTPAdapterImpl implements FTPAdapter {
         close();
     }
 
-    private String getParentDirectory(final String path) {
+    public String getParentDirectory(final String path) {
         Path file = Paths.get(path);
         int nameCount = file.getNameCount();
         String parentDirectory = ".";
@@ -223,7 +223,7 @@ public class FTPAdapterImpl implements FTPAdapter {
         return parentDirectory;
     }
 
-    private String getFile(final String path) {
+    public String getFile(final String path) {
         Path completePath = Paths.get(path);
         int nameCount = completePath.getNameCount();
         return completePath.getName(nameCount - 1).toString();
@@ -231,12 +231,38 @@ public class FTPAdapterImpl implements FTPAdapter {
 
     @Override
     public boolean mkdir(String path) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (path == null || path.isEmpty()) {
+            throw new IllegalArgumentException("path argument cannot be null or empty!");
+        }
+        if (!this.client.isConnected()) {
+            authenticate();
+        }
+        boolean result = this.client.makeDirectory(path);
+        if (result) {
+            Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.INFO, this.client.getReplyString());
+        } else {
+            Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.WARNING, this.client.getReplyString());
+            throw new IOException(this.client.getReplyString());
+        }
+        return true;
     }
 
     @Override
     public boolean rmdir(String path) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (path == null || path.isEmpty()) {
+            throw new IllegalArgumentException("path argument cannot be null or empty!");
+        }
+        if (!this.client.isConnected()) {
+            authenticate();
+        }
+        boolean result = this.client.removeDirectory(path);
+        if (result) {
+            Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.INFO, this.client.getReplyString());
+        } else {
+            Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.WARNING, this.client.getReplyString());
+            throw new IOException(this.client.getReplyString());
+        }
+        return true;
     }
 
 }
