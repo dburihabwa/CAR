@@ -82,21 +82,23 @@ public class FileResource {
     }
 
     @PUT
+    @Consumes({MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_OCTET_STREAM})
+    @Produces(MediaType.TEXT_PLAIN)
     @Path("/file/{path:.*}")
     public String put(@PathParam("path") String path, InputStream received) {
         FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
 
         try {
             if (path == null || path.isEmpty()) {
-                return "failure: the new file must be given a name!";
+                return "failure: the new file must be given a name!\n";
             }
             System.out.println("called PUT " + path);
             
             adapter.stor(path, received);
-            return "success";
+            return "success\n";
         } catch (IOException ex) {
             Logger.getLogger(FileResource.class.getName()).log(Level.SEVERE, null, ex);
-            return "failure: " + ex.getMessage();
+            return "failure: " + ex.getMessage() + "\n";
         }
     }
 }
