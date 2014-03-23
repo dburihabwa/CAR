@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Path;
@@ -88,8 +89,9 @@ public class FileResource {
     @Path("/file/{path:.*}")
     /**
      * Creates or overwrites a file on the server.
-     * @param   path        Path of the file
-     * @param   received    file input stream
+     *
+     * @param path Path of the file
+     * @param received file input stream
      */
     public String put(@PathParam("path") String path, InputStream received) throws IOException {
         FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
@@ -99,7 +101,7 @@ public class FileResource {
                 return "failure: the new file must be given a name!\n";
             }
             System.out.println("called PUT " + path);
-            
+
             adapter.stor(path, received);
             return "success\n";
         } catch (IOException ex) {
@@ -108,5 +110,33 @@ public class FileResource {
         } finally {
             adapter.close();
         }
+    }
+
+    @DELETE
+    @Path("/file/{path: .*}")
+    /**
+     * Deletes a file on the server.
+     *
+     * @param path Path to the file
+     * @return A string as the result of the operation
+     */
+    public String delete(@PathParam("path") final String path) throws IOException {
+        String message = "DELETE " + path;
+        Logger.getLogger(FileResource.class.getName()).log(Level.INFO, message);
+        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+        try {
+            boolean result = adapter.delete(path);
+            if (result) {
+                message += ": SUCCESS";
+            } else {
+                message += ": FAILURE";
+            }
+        } catch (IOException e) {
+            Logger.getLogger(FileResource.class.getName()).log(Level.WARNING, e.getMessage());
+            message += e.getMessage();
+        } finally {
+            adapter.close();
+        }
+        return message + "\n";
     }
 }

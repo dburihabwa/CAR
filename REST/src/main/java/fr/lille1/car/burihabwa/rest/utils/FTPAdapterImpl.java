@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.IIOException;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -108,10 +111,10 @@ public class FTPAdapterImpl implements FTPAdapter {
     }
 
     public void close() throws IOException {
-        if (this.client != null) {
+        if (this.client != null && this.client.isConnected()) {
             this.client.logout();
             this.client.disconnect();
-        }        
+        }
     }
 
     /**
@@ -148,16 +151,39 @@ public class FTPAdapterImpl implements FTPAdapter {
     }
 
     @Override
+    /**
+     * Deletes a file on the server.
+     *
+     * @param path Path to the file
+     * @return result of the deletion
+     * @throws IOException if the file does not exist, is not a file or the ftp
+     * user cannot perform this action.
+     */
     public boolean delete(String path) throws IOException {
-        if (path == null) {
-            throw new IllegalArgumentException("path argument cannot be null!");
+        if (path == null || path.isEmpty()) {
+            throw new IllegalArgumentException("path argument cannot be null or empty!");
         }
         if (!authenticate()) {
             throw new IOException("Wrong username and password!");
         }
-        boolean result = this.client.deleteFile(path);
-        this.client.logout();
-        this.client.disconnect();
+        String currentDirectory = this.client.printWorkingDirectory();
+        String parentDirectory = getParentDirectory(path);
+        String file = getFile(path);
+        if (!parentDirectory.isEmpty()) {
+            this.client.changeWorkingDirectory(parentDirectory);
+        }
+        boolean result = this.client.deleteFile(file);
+        String replyString = this.client.getReplyString();
+        if (result) {
+            Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.INFO, path + " was successfully deleted!");
+        } else {
+            Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.WARNING, replyString);
+            close();
+            throw new IOException(replyString);
+        }
+        if (!parentDirectory.isEmpty()) {
+            this.client.changeWorkingDirectory(currentDirectory);
+        }
         return result;
     }
 
@@ -177,11 +203,15 @@ public class FTPAdapterImpl implements FTPAdapter {
         this.client.setBufferSize(4096);
         this.client.setFileType(FTP.BINARY_FILE_TYPE);
         this.client.setFileTransferMode(FTP.COMPRESSED_TRANSFER_MODE);
-
-        this.client.storeFile(file, received);
+        boolean storeFile = this.client.storeFile(file, received);
+        if (storeFile) {
+            System.out.println("The new file " + file + " was created!");
+        } else {
+            Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.WARNING, this.client.getReplyString());
+            throw new IOException(this.client.getReplyString());
+        }
         received.close();
-        this.client.logout();
-        this.client.disconnect();
+        close();
     }
 
     private String getParentDirectory(final String path) {
