@@ -7,6 +7,7 @@ package fr.lille1.car.burihabwa.rest.api;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import org.apache.commons.net.ftp.FTPFile;
 
 /**
@@ -15,6 +16,9 @@ import org.apache.commons.net.ftp.FTPFile;
  */
 public interface FTPAdapter {
     FTPFile[] list(final String path) throws IOException;
+    boolean exists(final String path) throws IOException;
+    boolean isDirectory(final String path) throws IOException;
     File retr(final String path) throws IOException;
-    void stor(final File file) throws IOException;
+    void stor(final String path, final InputStream is) throws IOException;
+    boolean delete(final String path) throws IOException;
 }

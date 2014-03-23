@@ -2,12 +2,21 @@
 <html>
     <head>
         <title>Passerelle REST</title>
+        <script type = "text/javascript" src = "js/jquery-1.11.0.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" />
         <script type="text/javascript" src ="bootstrap/js/bootstrap.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" />        
         <script type="text/javascript" src ="js/rest.js"></script>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     </head>
     <body>
         <h1>Hello World!</h1>
+        <form id = "upload" class = "col-md-2" method = "POST" action = "api/file/essential_mix.mp3" enctype="multipart/form-data">
+            <fieldset>
+                <legend>Upload a file</legend>
+                <input class = "" type = "file" name = "file"/>
+                <input class = "btn btn-success" type= "submit" value = "ok" />
+            </fieldset>
+        </form>
+        <div id ="dir"></div>
     </body>
 </html>
