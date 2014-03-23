@@ -5,12 +5,12 @@
  */
 package fr.lille1.car.burihabwa.rest.api;
 
+import fr.lille1.car.burihabwa.rest.utils.FTPAdapterImpl;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Path;

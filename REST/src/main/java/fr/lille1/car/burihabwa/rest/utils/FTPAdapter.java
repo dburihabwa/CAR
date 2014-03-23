@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fr.lille1.car.burihabwa.rest.api;
+package fr.lille1.car.burihabwa.rest.utils;
 
 import java.io.File;
 import java.io.IOException;

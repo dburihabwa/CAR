@@ -6,6 +6,7 @@
 package fr.lille1.car.burihabwa.rest.api;
 
 import com.sun.jersey.multipart.FormDataParam;
+import fr.lille1.car.burihabwa.rest.utils.FTPAdapterImpl;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -85,7 +86,12 @@ public class FileResource {
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_OCTET_STREAM})
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/file/{path:.*}")
-    public String put(@PathParam("path") String path, InputStream received) {
+    /**
+     * Creates or overwrites a file on the server.
+     * @param   path        Path of the file
+     * @param   received    file input stream
+     */
+    public String put(@PathParam("path") String path, InputStream received) throws IOException {
         FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
 
         try {
@@ -99,6 +105,8 @@ public class FileResource {
         } catch (IOException ex) {
             Logger.getLogger(FileResource.class.getName()).log(Level.SEVERE, null, ex);
             return "failure: " + ex.getMessage() + "\n";
+        } finally {
+            adapter.close();
         }
     }
 }
