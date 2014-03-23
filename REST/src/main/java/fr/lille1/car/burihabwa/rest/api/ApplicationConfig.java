@@ -17,9 +17,9 @@ import javax.ws.rs.core.Application;
 public class ApplicationConfig extends Application {
     
     public static String host = "localhost";
-    public static int port = 1024;
-    public static String username = "anonymous";
-    public static String password  = "";
+    public static int port = 21;
+    public static String username = "timmy";
+    public static String password  = "timmy";
 
     @Override
     public Set<Class<?>> getClasses() {
