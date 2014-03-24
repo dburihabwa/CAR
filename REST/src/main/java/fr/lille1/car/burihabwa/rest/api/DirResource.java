@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.lille1.car.burihabwa.rest.api;
 
 import fr.lille1.car.burihabwa.rest.utils.BasicAuthenticator;
@@ -69,7 +64,6 @@ public class DirResource {
         BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
         String username = basicAuthenticator.getUsername();
         String password = basicAuthenticator.getPassword();
-        System.out.println("Try to authenticate as " + username + " with password \"" + password + "\"");
         FTPAdapter adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
         FTPFile[] files = null;
         String content = "<!DOCTYPE html>\n";
@@ -128,7 +122,7 @@ public class DirResource {
                 content += " title = \"" + file.getName() + "\"";
                 content += " href = \"/REST/api/file/";
                 if (path != null) {
-                    content += context.getAbsolutePath().getPath() + "/";
+                    content += adapter.getFile(path) + "/";
                 }
                 content += file.getName() + "\">" + file.getName() + "</a>";
             }

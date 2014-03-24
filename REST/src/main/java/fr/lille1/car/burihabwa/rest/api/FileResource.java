@@ -1,13 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.lille1.car.burihabwa.rest.api;
 
 import com.sun.jersey.multipart.FormDataParam;
+import fr.lille1.car.burihabwa.rest.utils.BasicAuthenticator;
+import fr.lille1.car.burihabwa.rest.utils.FTPAdapter;
 import fr.lille1.car.burihabwa.rest.utils.FTPAdapterImpl;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 /**
- * REST Web Service
+ * RESTFUL Web Service allowing interaction with files on a FTP server.
  *
  * @author dorian
  */
@@ -45,9 +41,27 @@ public class FileResource {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("/file/{path: .*}")
-    public Response getFile(@PathParam("path") String path) throws IOException {
-        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
-        File file = adapter.retr(path);
+    public Response get(@PathParam("path") String path) throws IOException {
+        if (headers.getRequestHeader("authorization") == null) {
+            Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+        FTPAdapter adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
+        File file = null;
+        try {
+            if (!adapter.hasValidCredentials()) {
+                Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+            }
+            file = adapter.retr(path);
+        } catch (IOException e) {
+
+        } finally {
+            adapter.close();
+        }
         ResponseBuilder response = Response.ok((Object) file);
         response.header("Content-Disposition", "attachement; filename = " + file.getName());
         return response.build();
@@ -57,30 +71,40 @@ public class FileResource {
     @Path("/file/{path:.*}")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public String post(@PathParam("path") String path, @FormDataParam("file") InputStream received) {
-        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
-        System.out.println("PATH: " + path);
+    public Response post(@PathParam("path") String path, @FormDataParam("file") InputStream received) throws IOException {
+        if (headers.getRequestHeader("authorization") == null) {
+            Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
         try {
+            if (!adapter.hasValidCredentials()) {
+                Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+            }
             if (path == null) {
             }
-            System.out.println("received.toString() : " + received.toString());
-            System.out.println("called POST " + path);
             if (!adapter.exists(path)) {
-                return "failure: file does not exist";
+                ResponseBuilder response = Response.status(Response.Status.NOT_FOUND);
+                return response.entity("failure: file does not exist").build();
             }
             if (adapter.isDirectory(path)) {
-                return "failure: cannot modify directory";
+                ResponseBuilder response = Response.status(Response.Status.NOT_MODIFIED);
+                return response.entity("failure: cannot modify directory").build();
             }
-            DataInputStream dis = new DataInputStream(received);
-            for (int i = 0; i < 4; i++) {
-                dis.readLine();
-            }
-            adapter.stor(path, dis);
-            return "success";
+            adapter.stor(path, received);
         } catch (IOException ex) {
             Logger.getLogger(FileResource.class.getName()).log(Level.SEVERE, null, ex);
-            return "failure : " + ex.getMessage();
+            ResponseBuilder response = Response.status(Response.Status.INTERNAL_SERVER_ERROR);
+            return response.entity("failure : " + ex.getMessage()).build();
+        } finally {
+            adapter.close();
         }
+        ResponseBuilder response = Response.status(Response.Status.OK);
+        return response.entity("success").build();
     }
 
     @PUT
@@ -93,23 +117,37 @@ public class FileResource {
      * @param path Path of the file
      * @param received file input stream
      */
-    public String put(@PathParam("path") String path, InputStream received) throws IOException {
-        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+    public Response put(@PathParam("path") String path, InputStream received) throws IOException {
+        if (path == null || path.isEmpty()) {
+            ResponseBuilder response = Response.status(400); //Bad request
+            return response.entity("failure: the new file must be given a name!").build();
+        }
+        if (headers.getRequestHeader("authorization") == null) {
+            Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
 
         try {
-            if (path == null || path.isEmpty()) {
-                return "failure: the new file must be given a name!\n";
+            if (!adapter.hasValidCredentials()) {
+                Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
             }
-            System.out.println("called PUT " + path);
 
             adapter.stor(path, received);
-            return "success\n";
         } catch (IOException ex) {
             Logger.getLogger(FileResource.class.getName()).log(Level.SEVERE, null, ex);
-            return "failure: " + ex.getMessage() + "\n";
+            ResponseBuilder response = Response.status(Response.Status.INTERNAL_SERVER_ERROR);
+            return response.entity("failure: " + ex.getMessage()).build();
         } finally {
             adapter.close();
         }
+
+        ResponseBuilder response = Response.status(Response.Status.OK);
+        return response.entity("success").build();
     }
 
     @DELETE
@@ -120,23 +158,34 @@ public class FileResource {
      * @param path Path to the file
      * @return A string as the result of the operation
      */
-    public String delete(@PathParam("path") final String path) throws IOException {
-        String message = "DELETE " + path;
-        Logger.getLogger(FileResource.class.getName()).log(Level.INFO, message);
-        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+    public Response delete(@PathParam("path") final String path) throws IOException {
+        if (headers.getRequestHeader("authorization") == null) {
+            Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
+        Response.ResponseBuilder response = null;
         try {
+            if (!adapter.hasValidCredentials()) {
+                response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+            }
             boolean result = adapter.delete(path);
             if (result) {
-                message += ": SUCCESS";
+                response = Response.status(Response.Status.OK).entity("success");
             } else {
-                message += ": FAILURE";
+                response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("failure");
             }
         } catch (IOException e) {
             Logger.getLogger(FileResource.class.getName()).log(Level.WARNING, e.getMessage());
-            message += e.getMessage();
+            response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage());
+            return response.build();
         } finally {
             adapter.close();
         }
-        return message + "\n";
+        return response.build();
     }
 }

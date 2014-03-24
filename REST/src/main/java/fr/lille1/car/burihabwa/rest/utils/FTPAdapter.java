@@ -1,16 +1,14 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.lille1.car.burihabwa.rest.utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.apache.commons.net.ftp.FTPFile;
 
 /**
+ * Abstraction layer in front of the FTP server.
  *
  * @author dorian
  */
@@ -106,4 +104,20 @@ public interface FTPAdapter {
      * @throws IOException
      */
     void close() throws IOException;
+
+    /**
+     * Returns the parent directory in the file path.
+     *
+     * @param path Path to the file
+     * @return the parent directory in the file path
+     */
+    String getParentDirectory(final String path);
+
+    /**
+     * Returns the last element of in a path.
+     *
+     * @param path Path to the file
+     * @return The last part of the path
+     */
+    String getFile(final String path);
 }
