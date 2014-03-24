@@ -5,6 +5,8 @@
  */
 package fr.lille1.car.burihabwa.rest.api;
 
+import fr.lille1.car.burihabwa.rest.utils.BasicAuthenticator;
+import fr.lille1.car.burihabwa.rest.utils.FTPAdapter;
 import fr.lille1.car.burihabwa.rest.utils.FTPAdapterImpl;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -23,7 +25,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.net.ftp.FTPFile;
 
 /**
- * REST Web Service
+ * RESTFUL Web service that allows interacting with directories on a FTP server.
  *
  * @author dorian
  */
@@ -36,30 +38,39 @@ public class DirResource {
     @Context
     private HttpHeaders headers;
 
-    /**
-     * Creates a new instance of DirResource
-     */
-    public DirResource() {
-    }
-
     @GET
     @Path("/dir")
     @Produces("text/html")
+    /**
+     * Liste the files at the root of the server
+     *
+     * @throws IOException
+     */
     public Response list() throws IOException {
         return list(null);
     }
 
     /**
-     * Retrieves representation of an instance of
-     * fr.lille1.car.burihabwa.rest.DirResource
+     * Lists the content of a directory on the server as HTML.
      *
-     * @return an instance of java.lang.String
+     * @param path Path to the directory on the server
+     *
+     * @return the content of the directory as HTML
+     * @throws IOException If an error occurs while interacting with the server
      */
     @GET
     @Produces("text/html")
     @Path("/dir/{path:.*}")
     public Response list(@PathParam("path") String path) throws IOException {
-        FTPAdapterImpl adapter = null;
+        if (headers.getRequestHeader("authorization") == null) {
+            Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+        System.out.println("Try to authenticate as " + username + " with password \"" + password + "\"");
+        FTPAdapter adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
         FTPFile[] files = null;
         String content = "<!DOCTYPE html>\n";
         content += "<html>\n";
@@ -68,7 +79,10 @@ public class DirResource {
         content += "</head>\n<body>\n";
         content += "<h1>" + "</h1>\n";
         try {
-            adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+            if (!adapter.hasValidCredentials()) {
+                Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+            }
             files = adapter.list(path);
         } catch (IOException ex) {
             Logger.getLogger(DirResource.class.getName()).log(Level.SEVERE, null, ex);
@@ -79,9 +93,7 @@ public class DirResource {
             Response.ResponseBuilder response = Response.ok(content, MediaType.TEXT_HTML);
             return response.build();
         } finally {
-            if (adapter != null) {
-                adapter.close();
-            }
+            adapter.close();
         }
         content += "\t<h1>You asked for " + path + "</h1>\n";
         content += "\t<table>\n";
@@ -128,28 +140,46 @@ public class DirResource {
         content += "\t</table>\n";
         content += "</body>\n";
         content += "</html>\n";
-        Response.ResponseBuilder response = Response.ok(content, MediaType.TEXT_HTML);
+        Response.ResponseBuilder response = Response.ok(content, MediaType.TEXT_HTML).status(Response.Status.OK);
         return response.build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/dir/{path:.*}")
-    public String listJSON(@PathParam("path") String path) throws IOException {
-        FTPAdapterImpl adapter = null;
+    /**
+     * Lists the content of a directory on the server as JSON.
+     *
+     * @param path Path to the directory on the server
+     *
+     * @return the content of the directory as JSON
+     * @throws IOException If an error occurs while interacting with the server
+     */
+    public Response listJSON(@PathParam("path") String path) throws IOException {
+        if (headers.getRequestHeader("authorization") == null) {
+            Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+        FTPAdapter adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
         FTPFile[] files = null;
         String content = "[";
         try {
-            adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+            if (!adapter.hasValidCredentials()) {
+                Response.ResponseBuilder response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+            }
             files = adapter.list(path);
         } catch (IOException ex) {
             Logger.getLogger(DirResource.class.getName()).log(Level.SEVERE, null, ex);
             content += "An error occured]";
-            return content;
+            Response.ResponseBuilder response = Response.status(Response.Status.NOT_FOUND)
+                    .entity(content);
+            return response.build();
         } finally {
-            if (adapter != null) {
-                adapter.close();
-            }
+            adapter.close();
         }
         for (FTPFile file : files) {
             content += "{ ";
@@ -159,53 +189,99 @@ public class DirResource {
             content += " }, ";
         }
         content += "]";
-        return content;
+        Response.ResponseBuilder response = Response.status(Response.Status.OK)
+                .entity(content);
+        return response.build();
     }
 
     @DELETE
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/dir/{path:.*}")
-    public String delete(@PathParam("path") String path) {
-        Response.ResponseBuilder response = Response.ok();
-        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+    /**
+     * Deletes an empty directory on the server.
+     *
+     * @param path Path to the directory on the server
+     *
+     * @return the response with the result of the deletion
+     * @throws IOException If an error occurs while interacting with the server
+     */
+    public Response delete(@PathParam("path") String path) throws IOException {
+        Response.ResponseBuilder response = null;
+        if (headers.getRequestHeader("authorization") == null) {
+            response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+
+        FTPAdapter adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
         boolean result = false;
         try {
+            if (!adapter.hasValidCredentials()) {
+                response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+            }
+
             result = adapter.rmdir(path);
         } catch (IOException ex) {
             Logger.getLogger(DirResource.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            adapter.close();
         }
         if (result) {
-            response = response.status(Response.Status.OK);
-            return "successful DELETE of " + path + "!\n";
-        } else {
-            response = response.status(Response.Status.NOT_FOUND);
-            return "unsuccesful DELETE of " + path + "!\n";
+            response = Response.status(Response.Status.OK).entity("successful DELETE of " + path + "!\n");
+            return response.build();
         }
-        //return response.build();
+        response = Response.status(Response.Status.NOT_FOUND).entity("unsuccesful DELETE of " + path + "!\n");
+        return response.build();
     }
 
     @PUT
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/dir/{path:.*}")
+    /**
+     * Creates an empty directory on the server.
+     *
+     * @param path Path to the new directory on the server
+     *
+     * @return the response with the result of the creation
+     * @throws IOException If an error occurs while interacting with the server
+     */
     public Response put(@PathParam("path") String path) throws IOException {
+        Response.ResponseBuilder response = null;
+        if (headers.getRequestHeader("authorization") == null) {
+            response = Response.status(Response.Status.UNAUTHORIZED).entity("Requires HTTP authentication!");
+            return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+        }
+        BasicAuthenticator basicAuthenticator = new BasicAuthenticator(headers.getRequestHeader("authorization").get(0));
+        String username = basicAuthenticator.getUsername();
+        String password = basicAuthenticator.getPassword();
+
         String message = "PUT /api/dir/" + path;
         Logger.getLogger(FileResource.class.getName()).log(Level.INFO, message);
-        FTPAdapterImpl adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, ApplicationConfig.username, ApplicationConfig.password);
+        FTPAdapter adapter = new FTPAdapterImpl(ApplicationConfig.host, ApplicationConfig.port, username, password);
         try {
+            if (!adapter.hasValidCredentials()) {
+                response = Response.status(Response.Status.UNAUTHORIZED).entity("Wrong user name and password!");
+                return response.header("Www-authenticate", "Basic realm=\"rest\"").build();
+            }
             boolean result = adapter.mkdir(path);
             if (result) {
                 message += ": SUCCESS";
+                response = Response.status(Response.Status.OK).entity(message);
             } else {
                 message += ": FAILURE";
+                response = Response.status(Response.Status.NOT_FOUND).entity(message);
             }
         } catch (IOException e) {
             Logger.getLogger(FileResource.class.getName()).log(Level.WARNING, e.getMessage());
             message += e.getMessage();
+            response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage());
+            return response.build();
         } finally {
             adapter.close();
         }
-
-        Response.ResponseBuilder response = Response.ok(message).status(200);
         return response.build();
     }
 }

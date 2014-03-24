@@ -91,4 +91,19 @@ public interface FTPAdapter {
      * deleted
      */
     boolean rmdir(final String path) throws IOException;
+
+    /**
+     * Tests if the credentials given to the adapter can connect to the server
+     *
+     * @return Result of the test
+     * @throws IOException
+     */
+    boolean hasValidCredentials() throws IOException;
+
+    /**
+     * Closes the connection.
+     *
+     * @throws IOException
+     */
+    void close() throws IOException;
 }

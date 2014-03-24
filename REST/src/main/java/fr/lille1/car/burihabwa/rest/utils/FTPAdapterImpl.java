@@ -109,6 +109,7 @@ public class FTPAdapterImpl implements FTPAdapter {
         return false;
     }
 
+    @Override
     public void close() throws IOException {
         if (this.client != null && this.client.isConnected()) {
             this.client.logout();
@@ -214,6 +215,9 @@ public class FTPAdapterImpl implements FTPAdapter {
     }
 
     public String getParentDirectory(final String path) {
+        if (path == null) {
+            return ".";
+        }
         Path file = Paths.get(path);
         int nameCount = file.getNameCount();
         String parentDirectory = ".";
@@ -263,6 +267,24 @@ public class FTPAdapterImpl implements FTPAdapter {
             throw new IOException(this.client.getReplyString());
         }
         return true;
+    }
+
+    @Override
+    public boolean hasValidCredentials() {
+        try {
+            if (this.client.isConnected()) {
+                return true;
+            }
+            authenticate();
+            if (this.client.isConnected()) {
+                this.client.disconnect();
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException ex) {
+           return false;
+        }
     }
 
 }
