@@ -52,9 +52,7 @@ public class FTPAdapterImpl implements FTPAdapter {
             if (!isDirectory(path)) {
                 throw new IOException("Directory does not exist");
             }
-            System.out.println("Trying to move to " + path);
             this.client.changeWorkingDirectory(path);
-            System.out.println("Currently in " + this.client.printWorkingDirectory());
         }
         FTPFile[] files = client.listFiles();
         return files;
@@ -67,19 +65,13 @@ public class FTPAdapterImpl implements FTPAdapter {
         }
         String parentDirectory = getParentDirectory(path);
         String file = getFile(path);
-        System.out.println("Path :\t" + path);
-        System.out.println("\tfolder:\t" + parentDirectory);
-        System.out.println("\tfile:\t" + file);
         if (!this.client.changeWorkingDirectory(parentDirectory)) {
-            System.out.println("Could not switch to parent directory!");
             return false;
         }
 
         FTPFile[] files = this.client.listFiles();
         for (FTPFile f : files) {
-            System.out.println("FILE :\t" + f);
             if (f.isFile() && f.getName().equalsIgnoreCase(file)) {
-                System.out.println("found the file");
                 this.client.changeWorkingDirectory("/");
                 return true;
             }
@@ -98,10 +90,8 @@ public class FTPAdapterImpl implements FTPAdapter {
         }
         Path filePath = Paths.get(path);
         int nameCount = filePath.getNameCount();
-        System.out.println("NAMECOUNT : " + nameCount);
         FTPFile[] directories = this.client.listDirectories();
         for (FTPFile directory : directories) {
-            System.out.println("DIRECTORY :\t" + directory);
             if (directory.getName().equalsIgnoreCase(path)) {
                 return true;
             }
@@ -204,9 +194,7 @@ public class FTPAdapterImpl implements FTPAdapter {
         this.client.setFileType(FTP.BINARY_FILE_TYPE);
         this.client.setFileTransferMode(FTP.COMPRESSED_TRANSFER_MODE);
         boolean storeFile = this.client.storeFile(file, received);
-        if (storeFile) {
-            System.out.println("The new file " + file + " was created!");
-        } else {
+        if (!storeFile) {
             Logger.getLogger(FTPAdapterImpl.class.getName()).log(Level.WARNING, this.client.getReplyString());
             throw new IOException(this.client.getReplyString());
         }
@@ -283,7 +271,7 @@ public class FTPAdapterImpl implements FTPAdapter {
                 return false;
             }
         } catch (IOException ex) {
-           return false;
+            return false;
         }
     }
 
