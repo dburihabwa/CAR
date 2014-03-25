@@ -1,5 +1,7 @@
 #   CAR - TP2 (rendu 2)
+
 25/03/2014
+
 Dorian Burihabwa
 
 ##  Introduction
@@ -17,45 +19,52 @@ La manipulation des variables concernant l'authentification est déléguée à l
 
 ##  Fonctionnalités implémentées
 La communication avec la passerelle se fait par Basic HTTP authentication. Dans le cas où l'utilisateur n'est pas connecté, il reçoit un message d'erreur l'invitant à se connecter.
-La navigation n'étant pas complète, il est recommandé d'utiliser curl afin de tirer parti de l'API dévelopée.
+La navigation n'étant pas complète, il est recommandé d'utiliser curl afin de tirer parti de l'API développée.
 Les fonctionnalités implémentées sont les suivantes.
 
 ### Récupération de fichier 
-```GET REST/api/file/myfile```
+    GET REST/api/file/myfile
+    curl [-X GET] --user username:password GET REST/api/file/myfile
 
 Permet de récupérer un fichier en donnant son chemin depuis la racine du server.
 
 ### Modification de fichier
-```POST REST/api/file/myfile```
+    POST REST/api/file/myfile
+    curl -X POST --user username:password --upload-file myfile REST/api/file/myfile
 
 Permet de modifier un fichier en donnant son chemin depuis la racine du server.
 Cette méthode visant à la modification, elle ne modifiera le fichier que si elle ne peut trouver un fichier portant ce nom sur le serveur.
 Dans le cas ou elle n'en trouvait pas, elle renverrait un message d'erreur.
 
 ### Upload de fichier
-```PUT REST/api/file/myfile```
+    PUT REST/api/file/myfile
+    curl -X PUT --user username:password --upload-file myfile REST/api/file/myfile
 
 Permet d'ajouter un fichier sur le serveur.
 
 ### Effacement de fichier
-```DELETE REST/api/file/myfile```
+    DELETE REST/api/file/myfile
+    curl -X DELETE --user username:password REST/api/file/myfile
 
 Permet d'effacer un fichier sur le serveur.
 
 ### Listing de répertoire
-```GET REST/api/dir/mydir```
+    GET REST/api/dir/mydir
+    curl [-X GET] --user username:password REST/api/dir/mydir
 
 Permet de lister le contenu d'un répertoire sur le serveur.
 
 ### Création de répertoire
-```PUT REST/api/dir/mydir```
+    PUT REST/api/dir/mydir
+    curl -X PUT --user username:password REST/api/dir/mydir
 
 Permet de créer un répertoire sur le serveur.
 
 ### Effacement de  répertoire
-```DELETE REST/api/dir/mydir```
+    DELETE REST/api/dir/mydir
+    curl [-X GET] --user username:password REST/api/dir/mydir
 
-Permet d'éffacer un répertoire non vide sur le serveur.
+Permet d'effacer un répertoire non vide sur le serveur.
 
 ## Code sample
 Pour information, voici un morceau de code permettant l'upload de fichier.
@@ -86,12 +95,12 @@ Pour information, voici un morceau de code permettant l'upload de fichier.
     }
 
 Ce code est défini dans l'implémenation du FTPAdapter, FTPAdapterImpl et est utilisé à par les méthodes POST et PUT sur l'API file.
-Commençant par vérifier les arguments pour détecter les erreurs abhérantes, le code se poursuit par l'utilisation des méthodes utilitaires getFile (retourant la dernière partie du chemin soit le nom du fichier) et getParentDirectory (retournant le début du chemin soit le répertoire où créer le fichier).
+Commençant par vérifier les arguments pour détecter les erreurs aberrantes, le code se poursuit par l'utilisation des méthodes utilitaires getFile (retournant la dernière partie du chemin soit le nom du fichier) et getParentDirectory (retournant le début du chemin soit le répertoire où créer le fichier).
 La copie du fichier est ensuite entamée. Suite à quoi le flux de fichier et la connexion au serveur FTP sont fermés.
 
 ##  Conclusion
-Ce projet a révélé ses difficultés dès le départ en offrant un challenge quant à sa configuration et l'ajout de dépendances pour courvrir la pauvreté de l'API web services de JAVA.
+Ce projet a révélé ses difficultés dès le départ en offrant un challenge quant à sa configuration et l'ajout de dépendances pour couvrir la pauvreté de l'API web services de JAVA.
 Il a revanche permis de revenir rapidement sur les limites du serveur FTP implémenté au premier TP.
 De plus la technologie étant plus récente et mieux entretenue, trouver de la documentation ne fut pas une grande difficulté.
 
-En conclusion, ce projet s'est avérér un véritable challenge au bout que seules une bonne documentation et où une première expérience du développement web en java apporte permette d'accélérer.
+En conclusion, ce projet s'est avéré un véritable challenge au bout que seules une bonne documentation et où une première expérience du développement web en java apporte permette d'accélérer.
