@@ -80,3 +80,8 @@ Commençant par vérifier les arguments pour détecter les erreurs abhérantes, 
 La copie du fichier est ensuite entamée. Suite à quoi le flux de fichier et la connexion au serveur FTP sont fermés.
 
 ##  Conclusion
+Ce projet a révélé ses difficultés dès le départ en offrant un challenge quant à sa configuration et l'ajout de dépendances pour courvrir la pauvreté de l'API web services de JAVA.
+Il a revanche permis de revenir rapidement sur les limites du serveur FTP implémenté au premier TP.
+De plus la technologie étant plus récente et mieux entretenue, trouver de la documentation ne fut pas une grande difficulté.
+
+En conclusion, ce projet s'est avérér un véritable challenge au bout que seules une bonne documentation et où une première expérience du développement web en java apporte permette d'accélérer.
