@@ -107,12 +107,6 @@ public class FTPAdapterImpl implements FTPAdapter {
         }
     }
 
-    /**
-     *
-     * @param path
-     * @return
-     * @throws IOException
-     */
     @Override
     public File retr(final String path) throws IOException {
         if (!authenticate()) {
@@ -141,14 +135,6 @@ public class FTPAdapterImpl implements FTPAdapter {
     }
 
     @Override
-    /**
-     * Deletes a file on the server.
-     *
-     * @param path Path to the file
-     * @return result of the deletion
-     * @throws IOException if the file does not exist, is not a file or the ftp
-     * user cannot perform this action.
-     */
     public boolean delete(String path) throws IOException {
         if (path == null || path.isEmpty()) {
             throw new IllegalArgumentException("path argument cannot be null or empty!");
@@ -202,6 +188,7 @@ public class FTPAdapterImpl implements FTPAdapter {
         close();
     }
 
+    @Override
     public String getParentDirectory(final String path) {
         if (path == null) {
             return ".";
