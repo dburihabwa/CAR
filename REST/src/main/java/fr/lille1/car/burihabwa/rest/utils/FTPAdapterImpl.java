@@ -72,11 +72,11 @@ public class FTPAdapterImpl implements FTPAdapter {
         FTPFile[] files = this.client.listFiles();
         for (FTPFile f : files) {
             if (f.isFile() && f.getName().equalsIgnoreCase(file)) {
-                this.client.changeWorkingDirectory("/");
+                this.client.changeWorkingDirectory("");
                 return true;
             }
         }
-        this.client.changeWorkingDirectory("/");
+        this.client.changeWorkingDirectory("");
         return false;
     }
 
@@ -191,11 +191,11 @@ public class FTPAdapterImpl implements FTPAdapter {
     @Override
     public String getParentDirectory(final String path) {
         if (path == null) {
-            return ".";
+            return "";
         }
         Path file = Paths.get(path);
         int nameCount = file.getNameCount();
-        String parentDirectory = ".";
+        String parentDirectory = "";
         if (nameCount > 1) {
             parentDirectory = file.subpath(0, nameCount - 1).toString();
         }
