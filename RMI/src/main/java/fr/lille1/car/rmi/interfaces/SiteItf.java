@@ -2,14 +2,14 @@ package fr.lille1.car.rmi.interfaces;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
+import java.util.Set;
 
 public interface SiteItf extends Remote {
-	List<SiteItf> getChildren() throws RemoteException;
+	Set<SiteItf> getChildren() throws RemoteException;
 
 	SiteItf getParent() throws RemoteException;
 
-	String getMessage() throws RemoteException;
+	boolean hasUnsentMessages() throws RemoteException;
 
 	boolean isRoot() throws RemoteException;
 
@@ -17,7 +17,7 @@ public interface SiteItf extends Remote {
 
 	boolean setParent(final SiteItf parent) throws RemoteException;
 
-	boolean setMessage(final String message) throws RemoteException;
+	boolean setMessage(final Message message) throws RemoteException;
 
 	void propagate() throws RemoteException;
 
