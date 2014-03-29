@@ -8,15 +8,12 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Properties;
-import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fr.lille1.car.rmi.impl.MessageImpl;
 import fr.lille1.car.rmi.impl.SiteImpl;
-import fr.lille1.car.rmi.interfaces.Message;
 import fr.lille1.car.rmi.interfaces.SiteItf;
 import fr.lille1.car.rmi.utils.Prompt;
 
@@ -55,6 +52,7 @@ public class Main {
 
 		String interactive = properties.getProperty("site.interactive");
 		if (interactive != null && interactive.equalsIgnoreCase("true")) {
+			logger.log(Level.INFO, "Starting interactive mode!");
 			System.out.print(">\t");
 			Prompt prompt = new Prompt(site);
 			prompt.setSender(site);
@@ -76,21 +74,8 @@ public class Main {
 				}
 				site.propagate();
 			}
-			/*
-			 * Scanner scanner = new Scanner(System.in); String content = null;
-			 * while ((content = scanner.nextLine()) != null) { Message message
-			 * = new MessageImpl(site, content); site.setMessage(message);
-			 * String[] children = ((String) properties
-			 * .getProperty("site.children")).split(","); for (String child :
-			 * children) { try { SiteItf s = (SiteItf) registry.lookup(child);
-			 * site.addChild(s); } catch (NotBoundException e) {
-			 * logger.log(Level.WARNING, "Could not find child " + child); }
-			 * catch (AccessException e) { logger.log(Level.SEVERE,
-			 * e.getMessage(), e); } catch (RemoteException e) {
-			 * logger.log(Level.SEVERE, e.getMessage(), e); } }
-			 * site.propagate(); }
-			 */
 		} else {
+			logger.log(Level.INFO, "Starting passive mode!");
 			TimerTask task = new TimerTask() {
 
 				@Override
@@ -129,7 +114,7 @@ public class Main {
 				}
 			};
 			Timer timer = new Timer();
-			timer.schedule(task, 5000);
+			timer.scheduleAtFixedRate(task, 0, 5000);
 		}
 	}
 
