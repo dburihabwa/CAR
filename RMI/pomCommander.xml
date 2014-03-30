@@ -2,7 +2,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.burihabwa.car</groupId>
-    <artifactId>RMI</artifactId>
+    <artifactId>RMI-Commander</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>RMI</name>
     <build>
@@ -23,7 +23,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>fr.lille1.car.rmi.Main</mainClass>
+                            <mainClass>fr.lille1.car.rmi.Commander</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

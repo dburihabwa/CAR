@@ -5,7 +5,6 @@ import static org.junit.Assert.fail;
 import java.rmi.RemoteException;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
 import fr.lille1.car.rmi.impl.MessageImpl;
