@@ -89,6 +89,10 @@ public class Main {
 					} catch (RemoteException e) {
 						logger.log(Level.SEVERE, e.getMessage(), e);
 					}
+					
+					if (properties.getProperty("site.children") == null) {
+						return;
+					}
 
 					String[] children = (properties
 							.getProperty("site.children")).split(",");
