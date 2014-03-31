@@ -10,6 +10,7 @@ import java.rmi.registry.Registry;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,10 +43,13 @@ public class Main {
 			}
 		}
 
-		logger.log(Level.INFO, "Successfully loaded " + filename);
-
 		String name = properties.getProperty("site.name");
 		final SiteItf site = new SiteImpl(name);
+
+		FileHandler handler = new FileHandler(name + ".log");
+		logger.addHandler(handler);
+		logger.log(Level.INFO, "Successfully loaded " + filename);
+		logger.setUseParentHandlers(false);
 
 		startRegistry();
 		registry.rebind(site.getName(), site);
@@ -77,25 +81,14 @@ public class Main {
 		} else {
 			logger.log(Level.INFO, "Starting passive mode!");
 			TimerTask task = new TimerTask() {
-
 				@Override
 				public void run() {
-					try {
-						if (!site.hasUnsentMessages()) {
-							return;
-						}
-					} catch (AccessException e) {
-						logger.log(Level.SEVERE, e.getMessage(), e);
-					} catch (RemoteException e) {
-						logger.log(Level.SEVERE, e.getMessage(), e);
-					}
-					
-					if (properties.getProperty("site.children") == null) {
+					String childrenProperty = properties
+							.getProperty("site.children");
+					if (childrenProperty == null) {
 						return;
 					}
-
-					String[] children = (properties
-							.getProperty("site.children")).split(",");
+					String[] children = childrenProperty.split(",");
 					for (String child : children) {
 						try {
 							SiteItf s = (SiteItf) registry.lookup(child);
@@ -108,12 +101,6 @@ public class Main {
 						} catch (RemoteException e) {
 							logger.log(Level.SEVERE, e.getMessage(), e);
 						}
-					}
-
-					try {
-						site.propagate();
-					} catch (RemoteException e) {
-						logger.log(Level.SEVERE, e.getMessage(), e);
 					}
 				}
 			};
