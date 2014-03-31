@@ -5,6 +5,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import fr.lille1.car.rmi.impl.SiteImpl;
 import fr.lille1.car.rmi.interfaces.SiteItf;
@@ -17,7 +19,7 @@ import fr.lille1.car.rmi.interfaces.SiteItf;
  * 
  */
 public class RegistryLauncher {
-
+    private static Logger logger = Logger.getLogger(RegistryLauncher.class.getName());
 	/**
 	 * Starts the RMIRegistry.
 	 * 
@@ -35,6 +37,7 @@ public class RegistryLauncher {
 		Registry registry = LocateRegistry
 				.createRegistry(Registry.REGISTRY_PORT);
 		registry.rebind("dummy", (Remote) new SiteImpl("dummy"));
+        logger.log(Level.INFO, "Started registry on port " + Registry.REGISTRY_PORT);
 	}
 
 }

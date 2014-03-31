@@ -4,6 +4,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import fr.lille1.car.rmi.interfaces.Message;
 import fr.lille1.car.rmi.interfaces.SiteItf;
@@ -15,6 +17,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 	private Set<Message> sent;
 	private Set<Message> received;
 	private String name;
+	private Logger logger;
 
 	@SuppressWarnings("unused")
 	private SiteImpl() throws RemoteException {
@@ -29,6 +32,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 		this.children = new HashSet<SiteItf>();
 		this.received = new HashSet<Message>();
 		this.sent = new HashSet<Message>();
+		this.logger = Logger.getLogger(name);
 	}
 
 	public Set<SiteItf> getChildren() throws RemoteException {
@@ -77,7 +81,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 			return false;
 		}
 
-		System.out.println("RECEIVED : " + message.getContent() + " (from "
+		logger.log(Level.INFO, "RECEIVED : " + message.getContent() + " (from "
 				+ message.getSender().getName() + ")");
 		return this.received.add(message);
 	}
