@@ -22,6 +22,7 @@ public class Main {
 	private static Logger logger = Logger.getLogger(Main.class.getName());
 	private static Properties properties = new Properties();
 	private static Registry registry;
+	private static final int DEFAULT_TIMER = 1000;
 
 	public static void main(String[] args) throws IOException {
 		if (args.length != 1) {
@@ -89,7 +90,7 @@ public class Main {
 					} catch (RemoteException e) {
 						logger.log(Level.SEVERE, e.getMessage(), e);
 					}
-					
+
 					if (properties.getProperty("site.children") == null) {
 						return;
 					}
@@ -118,7 +119,13 @@ public class Main {
 				}
 			};
 			Timer timer = new Timer();
-			timer.scheduleAtFixedRate(task, 0, 5000);
+			int schedule = DEFAULT_TIMER;
+			String scheduleProperty = properties.getProperty("site.schedule");
+			if (scheduleProperty != null) {
+				schedule = Integer.parseInt(scheduleProperty);
+			}
+
+			timer.scheduleAtFixedRate(task, 0, schedule);
 		}
 	}
 
