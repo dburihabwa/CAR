@@ -13,7 +13,6 @@ import fr.lille1.car.rmi.interfaces.SiteItf;
 public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 	private static final long serialVersionUID = 2885566260151215904L;
 	private Set<SiteItf> children;
-	private SiteItf parent;
 	private Set<Message> sent;
 	private Set<Message> received;
 	private String name;
@@ -39,24 +38,11 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 		return this.children;
 	}
 
-	public SiteItf getParent() throws RemoteException {
-		return this.parent;
-	}
-
 	public boolean addChild(SiteItf child) throws RemoteException {
 		if (child == null) {
 			throw new IllegalArgumentException("child argument cannot be null!");
 		}
 		return this.children.add(child);
-	}
-
-	public boolean setParent(SiteItf parent) throws RemoteException {
-		if (parent == null) {
-			throw new IllegalArgumentException(
-					"parent argument cannot be null!");
-		}
-		this.parent = parent;
-		return parent == this.parent;
 	}
 
 	public void propagate() throws RemoteException {
@@ -102,9 +88,6 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 		return result;
 	}
 
-	public boolean isRoot() throws RemoteException {
-		return this.parent == null;
-	}
 
 	public String getName() throws RemoteException {
 		return this.name;

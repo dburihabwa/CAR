@@ -7,15 +7,9 @@ import java.util.Set;
 public interface SiteItf extends Remote {
 	Set<SiteItf> getChildren() throws RemoteException;
 
-	SiteItf getParent() throws RemoteException;
-
 	boolean hasUnsentMessages() throws RemoteException;
 
-	boolean isRoot() throws RemoteException;
-
 	boolean addChild(final SiteItf child) throws RemoteException;
-
-	boolean setParent(final SiteItf parent) throws RemoteException;
 
 	boolean setMessage(final Message message) throws RemoteException;
 

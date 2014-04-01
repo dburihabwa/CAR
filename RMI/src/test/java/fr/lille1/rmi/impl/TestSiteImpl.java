@@ -33,13 +33,6 @@ public class TestSiteImpl {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testSetNullParent() throws RemoteException {
-		SiteItf site = new SiteImpl("test");
-		site.setParent(null);
-		fail("An exception should have been raised before reaching this line!");
-	}
-
-	@Test(expected = IllegalArgumentException.class)
 	public void testaddNullChild() throws RemoteException {
 		SiteItf site = new SiteImpl("test");
 		site.addChild(null);
