@@ -62,6 +62,27 @@ public class Main {
 		startRegistry();
 		registry.rebind(site.getName(), site);
 
+		Runnable unbinder = new Runnable() {
+
+			public void run() {
+				try {
+					registry.unbind(site.getName());
+				} catch (AccessException e) {
+					logger.log(Level.SEVERE, e.getMessage(), e);
+					System.exit(2);
+				} catch (RemoteException e) {
+					logger.log(Level.SEVERE, e.getMessage(), e);
+					System.exit(3);
+				} catch (NotBoundException e) {
+					logger.log(Level.WARNING, e.getMessage(), e);
+				}
+			}
+		};
+
+		Thread thread = new Thread(unbinder);
+
+		Runtime.getRuntime().addShutdownHook(thread);
+
 		String interactive = properties.getProperty("site.interactive");
 		if (interactive != null && interactive.equalsIgnoreCase("true")) {
 			logger.log(Level.INFO, "Starting interactive mode!");
