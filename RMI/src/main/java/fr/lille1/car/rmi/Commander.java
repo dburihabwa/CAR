@@ -8,6 +8,13 @@ import java.rmi.registry.Registry;
 import fr.lille1.car.rmi.interfaces.SiteItf;
 import fr.lille1.car.rmi.utils.Prompt;
 
+/**
+ * Launches a standalone program enabling a user to send messages to a live
+ * {@link SiteItf}.
+ * 
+ * @author Dorian Burihabwa
+ * 
+ */
 public class Commander {
 	public static void main(String[] args) throws RemoteException,
 			NotBoundException {

@@ -18,12 +18,19 @@ import fr.lille1.car.rmi.impl.SiteImpl;
 import fr.lille1.car.rmi.interfaces.SiteItf;
 import fr.lille1.car.rmi.utils.Prompt;
 
+/**
+ * Puts a {@link SiteItf} in the registry and regularly polls the Registry to
+ * recover its children.
+ * 
+ * @author Dorian Burihabwa
+ * 
+ */
 public class Main {
 	public static final String USAGE = "Usage: java -jar <jar> conf.properties";
 	private static Logger logger = Logger.getLogger(Main.class.getName());
 	private static Properties properties = new Properties();
 	private static Registry registry;
-	private static final int DEFAULT_TIMER = 1000;
+	public static final int DEFAULT_TIMER = 1000;
 
 	public static void main(String[] args) throws IOException {
 		if (args.length != 1) {
@@ -77,7 +84,6 @@ public class Main {
 						logger.log(Level.SEVERE, e.getMessage(), e);
 					}
 				}
-				site.propagate();
 			}
 		} else {
 			logger.log(Level.INFO, "Starting passive mode!");
