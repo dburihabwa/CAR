@@ -83,7 +83,23 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 
 		logger.log(Level.INFO, "RECEIVED : " + message.getContent() + " (from "
 				+ message.getSender().getName() + ")");
-		return this.received.add(message);
+		Runnable propagator = new Runnable() {
+			public void run() {
+				try {
+					SiteImpl.this.propagate();
+				} catch (RemoteException e) {
+					logger.log(Level.WARNING, e.getMessage(), e);
+					return;
+				}
+			}
+		};
+
+		boolean result = this.received.add(message);
+		if (result) {
+			Thread t = new Thread(propagator);
+			t.start();
+		}
+		return result;
 	}
 
 	public boolean isRoot() throws RemoteException {
