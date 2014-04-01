@@ -28,7 +28,7 @@ public class TestSiteImpl {
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetNullMessage() throws RemoteException {
 		SiteItf site = new SiteImpl("test");
-		site.setMessage(null);
+		site.receive(null);
 		fail("An exception should have been raised before reaching this line!");
 	}
 
@@ -56,7 +56,7 @@ public class TestSiteImpl {
 		assertFalse(site1.hasUnsentMessages());
 		assertFalse(site2.hasUnsentMessages());
 		site1.addChild(site2);
-		site1.setMessage(message);
+		site1.receive(message);
 		assertTrue(site1.hasUnsentMessages());
 		assertFalse(site2.hasUnsentMessages());
 		site1.propagate();
@@ -72,8 +72,8 @@ public class TestSiteImpl {
 		when(message.getSender()).thenReturn(site1);
 		when(message.getContent()).thenReturn("content");
 		when(message.getTime()).thenReturn(1000L);
-		assertTrue(site1.setMessage(message));
-		assertFalse(site1.setMessage(message));
+		assertTrue(site1.receive(message));
+		assertFalse(site1.receive(message));
 	}
 
 	@Test
@@ -84,9 +84,9 @@ public class TestSiteImpl {
 		when(message.getSender()).thenReturn(site1);
 		when(message.getContent()).thenReturn("content");
 		when(message.getTime()).thenReturn(1000L);
-		assertTrue(site1.setMessage(message));
+		assertTrue(site1.receive(message));
 		site1.propagate();
 		assertFalse(site1.hasUnsentMessages());
-		assertFalse(site1.setMessage(message));
+		assertFalse(site1.receive(message));
 	}
 }

@@ -28,7 +28,7 @@ public class Prompt {
 		if (content == null) {
 			return null;
 		}
-		destination.setMessage(new MessageImpl(this.sender, content));
+		destination.receive(new MessageImpl(this.sender, content));
 		return content;
 	}
 

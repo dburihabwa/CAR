@@ -11,7 +11,7 @@ public interface SiteItf extends Remote {
 
 	boolean addChild(final SiteItf child) throws RemoteException;
 
-	boolean setMessage(final Message message) throws RemoteException;
+	boolean receive(final Message message) throws RemoteException;
 
 	void propagate() throws RemoteException;
 

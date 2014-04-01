@@ -45,17 +45,17 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 		return this.children.add(child);
 	}
 
-	public void propagate() throws RemoteException {
+	public synchronized void propagate() throws RemoteException {
 		for (Message message : this.received) {
 			for (SiteItf child : this.children) {
-				child.setMessage(message);
+				child.receive(message);
 			}
 			this.sent.add(message);
 		}
 		this.received.clear();
 	}
 
-	public boolean setMessage(final Message message) throws RemoteException {
+	public boolean receive(final Message message) throws RemoteException {
 		if (message == null) {
 			throw new IllegalArgumentException(
 					"message argument cannot be null");
@@ -87,7 +87,6 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 		}
 		return result;
 	}
-
 
 	public String getName() throws RemoteException {
 		return this.name;
