@@ -1,7 +1,6 @@
 package fr.lille1.car.rmi.interfaces;
 
-import java.rmi.Remote;
-import java.rmi.RemoteException;
+import java.io.Serializable;
 
 /**
  * Message sent between {@link SiteItf}s.
@@ -9,25 +8,26 @@ import java.rmi.RemoteException;
  * @author Dorian Burihabwa
  * 
  */
-public interface Message extends Remote {
+public interface Message extends Serializable {
+	public long id = 1L;
 	/**
 	 * Returns the sender of the message.
 	 * 
 	 * @return the sender of the message
 	 */
-	SiteItf getSender() throws RemoteException;
+	SiteItf getSender();
 
 	/**
 	 * Returns the content of the message.
 	 * 
 	 * @return the content of the message
 	 */
-	String getContent() throws RemoteException;
+	String getContent();
 
 	/**
 	 * Returns the original time of the message.
 	 * 
 	 * @return the original time of the message
 	 */
-	long getTime() throws RemoteException;
+	long getTime();
 }

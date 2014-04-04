@@ -1,12 +1,9 @@
 package fr.lille1.car.rmi.impl;
 
-import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
-
 import fr.lille1.car.rmi.interfaces.Message;
 import fr.lille1.car.rmi.interfaces.SiteItf;
 
-public class MessageImpl extends UnicastRemoteObject implements Message {
+public class MessageImpl implements Message {
 	/**
 	 * 
 	 */
@@ -16,7 +13,7 @@ public class MessageImpl extends UnicastRemoteObject implements Message {
 	private final long time;
 
 	public MessageImpl(final SiteItf sender, final String content)
-			throws RemoteException {
+			{
 		super();
 		if (sender == null) {
 			throw new IllegalArgumentException(
@@ -31,15 +28,15 @@ public class MessageImpl extends UnicastRemoteObject implements Message {
 		this.time = System.nanoTime();
 	}
 
-	public SiteItf getSender() throws RemoteException {
+	public SiteItf getSender() {
 		return this.sender;
 	}
 
-	public String getContent() throws RemoteException {
+	public String getContent() {
 		return this.content;
 	}
 
-	public long getTime() throws RemoteException {
+	public long getTime() {
 		return this.time;
 	}
 
