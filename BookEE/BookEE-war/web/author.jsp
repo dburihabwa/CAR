@@ -13,7 +13,22 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Authors</h1>
+        <h1>Book shop</h1>
+        <ul>
+            <li>        
+                <a href="${pageContext.request.contextPath}" />Home</a>
+            </li>
+            <li>
+                <a href ="${pageContext.request.contextPath}/authors">Authors</a>
+            </li>
+            <li>
+                <a href ="${pageContext.request.contextPath}/book">Add a new book</a>
+            </li>
+            <li>
+                <a href ="${pageContext.request.contextPath}/basket">Basket</a>
+            </li>
+        </ul>
+        <h2>Authors</h2>
         <c:if test ="${authors != null}">
             <h2>List of authors found:</h2>
             <ul>
@@ -28,6 +43,5 @@
         <c:if test="${authors == null}">
             <h2>Could not find any authors in the database</h2>
         </c:if>
-        <a href =".">Home</a>
     </body>
 </html>

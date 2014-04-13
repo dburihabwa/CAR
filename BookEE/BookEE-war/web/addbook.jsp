@@ -13,6 +13,21 @@
     </head>
     <body>
         <h1>Book Shop</h1>
+        <ul>
+            <li>        
+                <a href="${pageContext.request.contextPath}" />Home</a>
+            </li>
+            <li>
+                <a href ="${pageContext.request.contextPath}/authors">Authors</a>
+            </li>
+            <li>
+                <a href ="${pageContext.request.contextPath}/book">Add a new book</a>
+            </li>
+            <li>
+                <a href ="${pageContext.request.contextPath}/basket">Basket</a>
+            </li>
+        </ul>
+        <h2>Add a new book</h2>
         <form method = "POST" action="./book">
 
             <label for = "title">Title</label>

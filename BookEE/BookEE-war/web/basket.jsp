@@ -1,6 +1,6 @@
 <%-- 
-    Document   : index.jsp
-    Created on : 08-Apr-2014, 14:38:44
+    Document   : basket.jsp
+    Created on : 13-Apr-2014, 17:39:05
     Author     : dorian
 --%>
 
@@ -9,8 +9,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>BOOK EE</title>
-        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Book Shop - In your basket</title>
     </head>
     <body>
         <h1>Book Shop</h1>
@@ -28,9 +28,13 @@
                 <a href ="${pageContext.request.contextPath}/basket">Basket</a>
             </li>
         </ul>
-        <c:if test="${books != null && books.size() > 0}">
-            <form method="POST" action="http://localhost:8080/BookEE-war/basket">
-                <table style="border-style: solid">
+        <h2>In your basket</h2>
+
+        <c:if test = "${basket != null && basket.books != null}">
+            <strong>Size: <c:out value = "${basket.books.size()}"/></strong>
+
+            <form method="POST" action="${pageContext.request.contextPath}/removebasket">
+                <table>
                     <thead>
                         <tr>
                             <th>Id</th>
@@ -41,29 +45,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach items="${books}" var="book">
+                        <c:forEach items = "${basket.books}" var= "book">
                             <tr>
-                                <td>
-                                    <c:out value="${book.id}"/>
-                                </td>
-                                <td>
-                                    <c:out value="${book.title}"/>
-                                </td>
-                                <td>
-                                    <c:out value="${book.year}"/>
-                                </td>
-                                <td>
-                                    <c:out value="${book.author}"/>
-                                </td>
-                                <td>
-                                    <input type = "checkbox" name = "<c:out value = "${book.id}"/>" value = "<c:out value = "${book.id}" />"/>
-                                </td>
+                                <td><c:out value="${book.id}"/></td>
+                                <td><c:out value="${book.title}"/></td>
+                                <td><c:out value="${book.year}" /></td>
+                                <td><c:out value="${book.author}" /></td>
+                                <td><input type = "checkbox" name = "<c:out value = "${book.id}"/>" value = "<c:out value = "${book.id}" />"/></td>
                             </tr>
                         </c:forEach>
                     </tbody>
                 </table>
-                <input type = "submit" value = "add"/>
+                <input type="submit" value ="remove" />
             </form>
         </c:if>
+
     </body>
 </html>
