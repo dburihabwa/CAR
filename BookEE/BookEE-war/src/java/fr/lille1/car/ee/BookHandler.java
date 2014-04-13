@@ -6,8 +6,7 @@ package fr.lille1.car.ee;
  * and open the template in the editor.
  */
 import java.io.IOException;
-import java.util.Map;
-import javax.servlet.RequestDispatcher;
+import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -21,6 +20,9 @@ import javax.servlet.http.HttpSession;
  */
 @WebServlet(urlPatterns = {"/BookHandler"})
 public class BookHandler extends HttpServlet {
+
+    @EJB
+    private BookDao bookDao;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -36,22 +38,18 @@ public class BookHandler extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         Book book = new Book();
         String author = request.getParameter("author");
-        if (author != null) {
-            book.setAuthor(author);
-        }
         String year = request.getParameter("year");
-        if (year != null) {
-            book.setYear(Integer.parseInt(year));
-        }
         String title = request.getParameter("title");
-        if (title != null) {
+        if (author != null && year != null && title != null) {
+            book.setAuthor(author);
+            book.setYear(Integer.parseInt(year));
             book.setTitle(title);
+            book = bookDao.persist(book);
         }
 
         HttpSession session = request.getSession(true);
         session.setAttribute("book", book);
-
-        request.getRequestDispatcher("index.jsp").forward(request, response);
+        response.sendRedirect("");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

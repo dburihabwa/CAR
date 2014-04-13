@@ -17,7 +17,7 @@
         <c:if test="${book != null}">
             <h2>A new book has been added!</h2>
         </c:if>
-        <form method = "POST" action="BookHandler">
+        <form method = "POST" action="book">
 
             <label for = "title">Title</label>
             <br/>
