@@ -7,19 +7,24 @@ package fr.lille1.car.ee;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
+ * An entity representing a book.
  *
- * @author dorian
+ * @author Dorian Burihabwa
  */
-@Entity(name = "book")
+@Entity
 public class Book implements Serializable {
+
     @Id
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
     private String title;
     private String author;
-    private int year;
+    private int publishingYear;
 
     public String getAuthor() {
         return author;
@@ -29,11 +34,11 @@ public class Book implements Serializable {
         this.author = author;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -46,11 +51,11 @@ public class Book implements Serializable {
     }
 
     public int getYear() {
-        return year;
+        return publishingYear;
     }
 
     public void setYear(int year) {
-        this.year = year;
+        this.publishingYear = year;
     }
 
 }
