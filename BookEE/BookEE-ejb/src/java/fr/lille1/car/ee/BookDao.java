@@ -65,6 +65,9 @@ public class BookDao {
      * @return The bpok with its new id
      */
     public Book persist(Book book) {
+        if (book == null) {
+            throw new IllegalArgumentException("book argument cannot be null!");
+        }
         this.em.persist(book);
         return book;
     }
@@ -77,6 +80,11 @@ public class BookDao {
     public List<Book> getAllBooks() {
         TypedQuery<Book> query = em.createQuery("SELECT b FROM Book b", Book.class);
         return query.getResultList();
+    }
+
+    public Book find(long id) {
+        Book book = em.find(Book.class, (Long) id);
+        return book;
     }
 
 }
