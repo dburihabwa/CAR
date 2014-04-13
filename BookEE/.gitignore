@@ -1,0 +1,5 @@
+BookEE-ejb/build/
+BookEE-war/build/
+BookEE-ejb/dist/
+BookEE-war/dist/
+*nbproject/*
