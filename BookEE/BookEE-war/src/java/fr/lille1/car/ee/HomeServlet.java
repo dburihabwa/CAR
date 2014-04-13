@@ -6,6 +6,8 @@
 package fr.lille1.car.ee;
 
 import java.io.IOException;
+import java.util.List;
+import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +18,9 @@ import javax.servlet.http.HttpServletResponse;
  * @author dorian
  */
 public class HomeServlet extends HttpServlet {
+
+    @EJB
+    private BookDao bookDao;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -29,6 +34,8 @@ public class HomeServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        List<Book> books = bookDao.getAllBooks();
+        request.setAttribute("books", books);
         request.getRequestDispatcher("index.jsp").forward(request, response);
     }
 

@@ -1,11 +1,12 @@
-package fr.lille1.car.ee;
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+package fr.lille1.car.ee;
+
 import java.io.IOException;
+import java.util.List;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,8 +18,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author dorian
  */
-@WebServlet(urlPatterns = {"/BookHandler"})
-public class BookHandler extends HttpServlet {
+@WebServlet(name = "AuthorServlet", urlPatterns = {"/author", "/authors"})
+public class AuthorServlet extends HttpServlet {
 
     @EJB
     private BookDao bookDao;
@@ -35,22 +36,11 @@ public class BookHandler extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        Book book = new Book();
-        String author = request.getParameter("author");
-        String year = request.getParameter("year");
-        String title = request.getParameter("title");
-        if (author != null && year != null && title != null) {
-            book.setAuthor(author);
-            book.setYear(Integer.parseInt(year));
-            book.setTitle(title);
-            book = bookDao.persist(book);
-        }
-
-        request.setAttribute("book", book);
-        response.sendRedirect("");
+        List<String> authors = bookDao.getAuthors();
+        request.setAttribute("authors", authors);
+        request.getRequestDispatcher("author.jsp").forward(request, response);
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -62,7 +52,7 @@ public class BookHandler extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("addbook.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -87,6 +77,6 @@ public class BookHandler extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

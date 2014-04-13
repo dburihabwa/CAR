@@ -13,37 +13,48 @@
         <meta charset="UTF-8">
     </head>
     <body>
-        <h1>BookEE</h1>
-        <c:if test="${book != null}">
-            <h2>A new book has been added!</h2>
+        <h1>Book Shop</h1>
+        <c:if test="${books != null && books.size() > 0}">
+            <table style="border-style: solid">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Title</th>
+                        <th>Year</th>
+                        <th>Author</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach items="${books}" var="book">
+                        <tr>
+                            <td>
+                                <c:out value="${book.id}"/>
+                            </td>
+                            <td>
+                                <c:out value="${book.title}"/>
+                            </td>
+                            <td>
+                                <c:out value="${book.year}"/>
+                            </td>
+                            <td>
+                                <c:out value="${book.author}"/>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
         </c:if>
-        <form method = "POST" action="book">
 
-            <label for = "title">Title</label>
-            <br/>
-            <input id = "title" name = "title" placeholder="title" type = "text"
-                   <c:if test="${book != null}">
-                       value = "<c:out value="${book.title}"/>"
-                   </c:if> 
-                   />
-            <br/>
-            <label for = "year">Year</label>
-            <br/>
-            <input id = "year" name = "year" placeholder="2014" type ="number" min="-3000" max ="2014" step="1"
-                   <c:if test="${book != null}">
-                       value = "<c:out value="${book.year}"/>"
-                   </c:if>
-                   />
-            <br/>
-            <label for = "author">Author</label>
-            <br/>
-            <input id = "author" name = "author" placeholder="author" type="text"
-                   <c:if test="${book != null}">
-                       value = "<c:out value="${book.author}"/>"
-                   </c:if>
-                   />
-            <br/>
-            <input type ="submit" value ="ok" />
-        </form>
+        <ul>
+            <li>        
+                <a href="" />Home</a>
+            </li>
+            <li>
+                <a href ="authors">Authors</a>
+            </li>
+            <li>
+                <a href ="book">Add a new book</a>
+            </li>
+        </ul>
     </body>
 </html>
