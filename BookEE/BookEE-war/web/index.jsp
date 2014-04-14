@@ -33,7 +33,6 @@
                 <table style="border-style: solid">
                     <thead>
                         <tr>
-                            <th>Id</th>
                             <th>Title</th>
                             <th>Year</th>
                             <th>Author</th>
@@ -44,9 +43,6 @@
                         <c:forEach items="${books}" var="book">
                             <tr>
                                 <td>
-                                    <c:out value="${book.id}"/>
-                                </td>
-                                <td>
                                     <c:out value="${book.title}"/>
                                 </td>
                                 <td>
@@ -56,7 +52,7 @@
                                     <c:out value="${book.author}"/>
                                 </td>
                                 <td>
-                                    <input type = "checkbox" name = "<c:out value = "${book.id}"/>" value = "<c:out value = "${book.id}" />"/>
+                                    <input type = "checkbox" name = "<c:out value = "${book.title}"/>" value = "<c:out value = "${book.title}" />"/>
                                 </td>
                             </tr>
                         </c:forEach>

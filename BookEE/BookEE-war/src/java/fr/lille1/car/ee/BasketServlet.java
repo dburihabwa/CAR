@@ -50,7 +50,7 @@ public class BasketServlet extends HttpServlet {
                 basket = new Basket();
             }
             for (String key : parameters.keySet()) {
-                Book book = bookdao.find(Long.parseLong(key));
+                Book book = bookdao.find(key);
                 if (book != null) {
                     basket.add(book);
                 }

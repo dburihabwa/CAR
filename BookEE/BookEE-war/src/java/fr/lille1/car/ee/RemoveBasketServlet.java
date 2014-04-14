@@ -48,7 +48,7 @@ public class RemoveBasketServlet extends HttpServlet {
         if (basket != null) {
             int originalSize = basket.getBooks().size();
             for (String key : parameters.keySet()) {
-                basket.remove(bookDao.find(Long.parseLong(key)));;
+                basket.remove(bookDao.find(key));
             }
             int finalSize = basket.getBooks().size();
             basket = basketDao.persist(basket);

@@ -82,8 +82,8 @@ public class BookDao {
         return query.getResultList();
     }
 
-    public Book find(long id) {
-        Book book = em.find(Book.class, (Long) id);
+    public Book find(final String name) {
+        Book book = em.find(Book.class, name);
         return book;
     }
 
