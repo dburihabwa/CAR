@@ -36,6 +36,7 @@ public class HomeServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         List<Book> books = bookDao.getAllBooks();
         request.setAttribute("books", books);
+        request.setAttribute("pageTitle", "Home");
         request.getRequestDispatcher("index.jsp").forward(request, response);
     }
 

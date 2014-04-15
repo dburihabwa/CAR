@@ -37,6 +37,7 @@ public class AuthorServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         List<String> authors = bookDao.getAuthors();
+        request.setAttribute("pageTitle", "Authors");
         request.setAttribute("authors", authors);
         request.getRequestDispatcher("author.jsp").forward(request, response);
     }

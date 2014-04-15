@@ -46,15 +46,12 @@ public class RemoveBasketServlet extends HttpServlet {
         HttpSession session = request.getSession();
         Basket basket = (Basket) session.getAttribute("basket");
         if (basket != null) {
-            int originalSize = basket.getBooks().size();
             for (String key : parameters.keySet()) {
                 basket.remove(bookDao.find(key));
             }
-            int finalSize = basket.getBooks().size();
-            basket = basketDao.persist(basket);
             session.setAttribute("basket", basket);
         }
-        response.sendRedirect("/basket");
+        response.sendRedirect("basket");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -69,7 +66,7 @@ public class RemoveBasketServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        response.sendRedirect("");
     }
 
     /**

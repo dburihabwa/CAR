@@ -55,9 +55,10 @@ public class BasketServlet extends HttpServlet {
                     basket.add(book);
                 }
             }
-            basket = basketDao.persist(basket);
             session.setAttribute("basket", basket);
         }
+
+        request.setAttribute("pageTitle", "Basket");
         request.getRequestDispatcher("basket.jsp").forward(request, response);
     }
 

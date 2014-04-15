@@ -5,44 +5,25 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Book Shop</h1>
-        <ul>
-            <li>        
-                <a href="${pageContext.request.contextPath}" />Home</a>
-            </li>
-            <li>
-                <a href ="${pageContext.request.contextPath}/authors">Authors</a>
-            </li>
-            <li>
-                <a href ="${pageContext.request.contextPath}/book">Add a new book</a>
-            </li>
-            <li>
-                <a href ="${pageContext.request.contextPath}/basket">Basket</a>
-            </li>
-        </ul>
-        <h2>Add a new book</h2>
-        <form method = "POST" action="./book">
 
-            <label for = "title">Title</label>
-            <br/>
-            <input id = "title" name = "title" placeholder="title" type = "text" />
-            <br/>
-            <label for = "year">Year</label>
-            <br/>
-            <input id = "year" name = "year" placeholder="2014" type ="number" min="-3000" max ="2014" step="1" />
-            <br/>
-            <label for = "author">Author</label>
-            <br/>
-            <input id = "author" name = "author" placeholder="author" type="text"/>
-            <br/>
-            <input type ="submit" value ="ok" />
-        </form>
-    </body>
-</html>
+<jsp:include page="header.jsp"/>
+<jsp:include page="nav.jsp" />
+<jsp:include page="state.jsp" />
+<form method = "POST" action="${pageContext.request.contextPath}/book">
+
+    <label for = "title">Title</label>
+    <br/>
+    <input id = "title" name = "title" placeholder="title" type = "text" />
+    <br/>
+    <label for = "year">Year</label>
+    <br/>
+    <input id = "year" name = "year" placeholder="2014" type ="number" min="-3000" max ="2014" step="1" />
+    <br/>
+    <label for = "author">Author</label>
+    <br/>
+    <input id = "author" name = "author" placeholder="author" type="text"/>
+    <br/>
+    <input type ="submit" value ="ok" />
+</form>
+
+<jsp:include page="footer.jsp" />
