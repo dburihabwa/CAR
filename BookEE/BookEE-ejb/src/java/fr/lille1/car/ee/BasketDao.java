@@ -5,9 +5,11 @@
  */
 package fr.lille1.car.ee;
 
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 
 /**
  *
@@ -26,6 +28,16 @@ public class BasketDao {
 
     public Basket find(final long id) {
         return em.find(Basket.class, id);
+    }
+
+    /**
+     * Returns all the baskets in the database.
+     *
+     * @return All the baskets in the dabatase
+     */
+    public List<Basket> getAllBaskets() {
+        TypedQuery<Basket> query = em.createQuery("SELECT b FROM Basket b", Basket.class);
+        return query.getResultList();
     }
 
 }
