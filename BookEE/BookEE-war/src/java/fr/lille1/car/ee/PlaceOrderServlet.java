@@ -48,7 +48,7 @@ public class PlaceOrderServlet extends HttpServlet {
         Basket basket = (Basket) session.getAttribute("basket");
         if (basket == null) {
             session.invalidate();
-            request.setAttribute("error", "A problem occured with your basket!");
+            request.setAttribute("error", "The system could not find your basket!");
             request.setAttribute("pageTitle", "Error");
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
@@ -56,7 +56,11 @@ public class PlaceOrderServlet extends HttpServlet {
         try {
             basket = basketDao.persist(basket);
         } catch (EJBException e) {
-            Logger.getLogger(PlaceOrderServlet.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+            Logger.getLogger(PlaceOrderServlet.class.getName()).log(Level.SEVERE, e.getMessage(), e);request.setAttribute("error", "The system could not find your basket!");
+            request.setAttribute("pageTitle", "Error");
+            request.setAttribute("error", "Your order could not be saved to the database!");
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
         }
         session.removeAttribute("basket");
         session.invalidate();
