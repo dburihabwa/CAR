@@ -6,7 +6,10 @@ package fr.lille1.car.ee;
  * and open the template in the editor.
  */
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -34,19 +37,55 @@ public class BookServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
         Book book = new Book();
         String author = request.getParameter("author");
         String year = request.getParameter("year");
         String title = request.getParameter("title");
-        if (author != null && year != null && title != null) {
+        if (author == null || author.isEmpty()) {
+            request.setAttribute("pageTitle", "Add a new book");
+            request.setAttribute("status", "The author of the book must be given!");
+            request.getRequestDispatcher("addbook.jsp").forward(request, response);
+            return;
+        }
+        if (year == null || year.isEmpty()) {
+            request.setAttribute("pageTitle", "Add a new book");
+            request.setAttribute("status", "The year of the book must be given!");
+            request.getRequestDispatcher("addbook.jsp").forward(request, response);
+            return;
+        }
+
+        if (title == null || title.isEmpty()) {
+            request.setAttribute("pageTitle", "Add a new book");
+            request.setAttribute("status", "The title of the book must be given!");
+            request.getRequestDispatcher("addbook.jsp").forward(request, response);
+            return;
+        }
+
+        try {
             book.setAuthor(author);
             book.setYear(Integer.parseInt(year));
             book.setTitle(title);
             book = bookDao.persist(book);
+        } catch (NumberFormatException e) {
+            Logger.getLogger(BookServlet.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+            request.setAttribute("pageTitle", "Add a new book");
+            request.setAttribute("status", "The year of the book must be an integer!");
+            request.getRequestDispatcher("addbook.jsp").forward(request, response);
+            return;
+        } catch (EJBException e) {
+            Logger.getLogger(BookServlet.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+            request.setAttribute("pageTitle", "Error");
+            request.setAttribute("error", "An error occured while saving the new book!");
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        } catch (Exception e) {
+            Logger.getLogger(BookServlet.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+            request.setAttribute("pageTitle", "Error");
+            request.setAttribute("error", e.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
         }
 
-        request.setAttribute("book", book);
         response.sendRedirect("");
     }
 
@@ -62,6 +101,7 @@ public class BookServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setAttribute("pageTitle", "Add a new book");
         request.getRequestDispatcher("addbook.jsp").forward(request, response);
     }
 
