@@ -8,6 +8,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <a href="${pageContext.request.contextPath}" />Home</a>
 <a href ="${pageContext.request.contextPath}/authors">Authors</a>
-<a href ="${pageContext.request.contextPath}/book">Add a new book</a>
 <a href ="${pageContext.request.contextPath}/basket">Basket</a>
 <a href ="${pageContext.request.contextPath}/admin">Admin</a>

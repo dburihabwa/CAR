@@ -6,7 +6,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <c:if test="${books != null && books.size() > 0}">
-    <form method="POST" action="http://localhost:8080/BookEE-war/basket">
+    <form method="POST" action="${pageContext.request.contextPath}/basket">
         <table style="border-style: solid">
             <thead>
                 <tr>
@@ -20,7 +20,7 @@
                 <c:forEach items="${books}" var="book">
                     <tr>
                         <td>
-                            <c:out value="${book.title}"
+                            <c:out value="${book.title}"/>
                         </td>
                         <td>
                             <c:out value="${book.year}"/>

@@ -9,6 +9,7 @@
 <jsp:include page="header.jsp"/>
 <jsp:include page="nav.jsp" />
 <ul>
+    <li><a href ="${pageContext.request.contextPath}/book">Add a new book</a></li>
     <li><a href = "${pageContext.request.contextPath}/orders">List orders</a></li>
     <li><a href = "${pageContext.request.contextPath}/prepare">Add default books</a></li>
 </ul>
