@@ -6,7 +6,7 @@
 package fr.lille1.car.burihabwa.rest.utils;
 
 import java.io.IOException;
-import sun.misc.BASE64Decoder;
+import java.util.Base64;
 
 /**
  *
@@ -31,7 +31,7 @@ public class BasicAuthenticator {
      * @throws IOException If an error occurs while decoding the header
      */
     public String decode() throws IOException {
-        return new String(new BASE64Decoder().decodeBuffer(this.base64String.split("\\s+")[1]));
+        return new String(Base64.getDecoder().decode(this.base64String.split("\\s+")[1]));
     }
 
     /**
