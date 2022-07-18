@@ -37,7 +37,7 @@ Pour plus de facilité, ces packages peuvent être générés à l'aide de comma
 ```bash
     mvn -f pom.xml package
     mvn -f pomRegistry.xml package
-    mvn -f pomCaommander.xml package
+    mvn -f pomCommander.xml package
 ```
 ## Lancer le projet
 Les packages générés doivent être lancés dans l'ordre suivant.
